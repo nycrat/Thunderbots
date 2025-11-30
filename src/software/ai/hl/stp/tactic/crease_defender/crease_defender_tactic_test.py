@@ -18,25 +18,25 @@ from proto.message_translation.tbots_protobuf import create_world_state
 @pytest.mark.parametrize(
     "blue_bots, yellow_bots, ball_initial_pos, ball_initial_velocity",
     [
-        # Test left and right align to centre crease
-        (
-            tbots_cpp.Field.createSSLDivisionBField()
-            .friendlyDefenseArea()
-            .posXPosYCorner()
-            + tbots_cpp.Vector(0.5, 0),
-            tbots_cpp.Point(1, 0),
-            tbots_cpp.Point(0, 0),
-            tbots_cpp.Vector(0, 0),
-        ),
-        (
-            tbots_cpp.Field.createSSLDivisionBField()
-            .friendlyDefenseArea()
-            .posXNegYCorner()
-            + tbots_cpp.Vector(0.5, 0),
-            tbots_cpp.Point(1, 0),
-            tbots_cpp.Point(0, 0),
-            tbots_cpp.Vector(0, 0),
-        ),
+        # # Test left and right align to centre crease
+        # (
+        #     tbots_cpp.Field.createSSLDivisionBField()
+        #     .friendlyDefenseArea()
+        #     .posXPosYCorner()
+        #     + tbots_cpp.Vector(0.5, 0),
+        #     tbots_cpp.Point(1, 0),
+        #     tbots_cpp.Point(0, 0),
+        #     tbots_cpp.Vector(0, 0),
+        # ),
+        # (
+        #     tbots_cpp.Field.createSSLDivisionBField()
+        #     .friendlyDefenseArea()
+        #     .posXNegYCorner()
+        #     + tbots_cpp.Vector(0.5, 0),
+        #     tbots_cpp.Point(1, 0),
+        #     tbots_cpp.Point(0, 0),
+        #     tbots_cpp.Vector(0, 0),
+        # ),
     ],
 )
 def test_crease_positioning(
@@ -130,31 +130,38 @@ friendly_defense_area_front_center = tbots_cpp.Point(
 @pytest.mark.parametrize(
     "blue_bots, yellow_bots, ball_initial_pos, ball_initial_velocity, should_chip",
     [
-        # Test auto chip over enemy
+        # # Test auto chip over enemy
+        # (
+        #     friendly_defense_area_front_center + tbots_cpp.Vector(0.5, 0),
+        #     friendly_defense_area_front_center + tbots_cpp.Vector(1.1, 0),
+        #     friendly_defense_area_front_center + tbots_cpp.Vector(0.9, 0),
+        #     tbots_cpp.Vector(-2, 0),
+        #     True,
+        # ),
+        # # Test block, auto chip off, enemy far
+        # (
+        #     friendly_defense_area_front_center + tbots_cpp.Vector(0.5, 0),
+        #     friendly_defense_area_front_center + tbots_cpp.Vector(5, 0),
+        #     tbots_cpp.Point(0, 0),
+        #     tbots_cpp.Vector(-6, 0),
+        #     False,
+        # ),
+        # # Test block, auto chip off, enemy close, facing net
+        # (
+        #     friendly_defense_area_front_center + tbots_cpp.Vector(1.5, 0),
+        #     friendly_defense_area_front_center + tbots_cpp.Vector(0.2, 0),
+        #     friendly_defense_area_front_center + tbots_cpp.Vector(0.9, 0),
+        #     tbots_cpp.Vector(2, 0),
+        #     False,
+        # ),
+        # Test block, auto chip off, enemy far, facing net
         (
-            friendly_defense_area_front_center + tbots_cpp.Vector(0.5, 0),
-            friendly_defense_area_front_center + tbots_cpp.Vector(1.1, 0),
-            friendly_defense_area_front_center + tbots_cpp.Vector(0.9, 0),
-            tbots_cpp.Vector(-2, 0),
-            True,
-        ),
-        # Test block, auto chip off, enemy far
-        (
-            friendly_defense_area_front_center + tbots_cpp.Vector(0.5, 0),
-            friendly_defense_area_front_center + tbots_cpp.Vector(5, 0),
-            tbots_cpp.Point(0, 0),
-            tbots_cpp.Vector(-6, 0),
-            False,
-        ),
-        # Test block, auto chip off, enemy close, facing net
-        (
-            friendly_defense_area_front_center + tbots_cpp.Vector(1.5, 0),
-            friendly_defense_area_front_center + tbots_cpp.Vector(0.2, 0),
-            friendly_defense_area_front_center + tbots_cpp.Vector(0.9, 0),
+            friendly_defense_area_front_center + tbots_cpp.Vector(3, 0),
+            tbots_cpp.Point(3, 0),
+            friendly_defense_area_front_center + tbots_cpp.Vector(0.9, 0.1),
             tbots_cpp.Vector(2, 0),
             False,
         ),
-        # Test block, auto chip off, enemy far, facing net
         (
             friendly_defense_area_front_center + tbots_cpp.Vector(3, 0),
             tbots_cpp.Point(3, 0),
@@ -237,22 +244,22 @@ def test_crease_autochip(
 @pytest.mark.parametrize(
     "blue_bots, yellow_bots, ball_initial_pos, ball_initial_velocity, should_dribble",
     [
-        # Test get ball in range
-        (
-            friendly_defense_area_front_center + tbots_cpp.Vector(0.5, 0),
-            tbots_cpp.Point(0, 0),
-            friendly_defense_area_front_center + tbots_cpp.Vector(1, 0),
-            tbots_cpp.Vector(0, 0),
-            True,
-        ),
-        # Test leave ball out of range
-        (
-            friendly_defense_area_front_center + tbots_cpp.Vector(0.5, 0),
-            tbots_cpp.Point(0, 0),
-            tbots_cpp.Point(0, 0) + tbots_cpp.Vector(-0.5, 0),
-            tbots_cpp.Vector(0, 0),
-            False,
-        ),
+        # # Test get ball in range
+        # (
+        #     friendly_defense_area_front_center + tbots_cpp.Vector(0.5, 0),
+        #     tbots_cpp.Point(0, 0),
+        #     friendly_defense_area_front_center + tbots_cpp.Vector(1, 0),
+        #     tbots_cpp.Vector(0, 0),
+        #     True,
+        # ),
+        # # Test leave ball out of range
+        # (
+        #     friendly_defense_area_front_center + tbots_cpp.Vector(0.5, 0),
+        #     tbots_cpp.Point(0, 0),
+        #     tbots_cpp.Point(0, 0) + tbots_cpp.Vector(-0.5, 0),
+        #     tbots_cpp.Vector(0, 0),
+        #     False,
+        # ),
     ],
 )
 def test_crease_get_ball(

@@ -36,6 +36,7 @@ class BallIsOffGround(Validation):
         :return: ValidationGeometry containing geometry to visualize
 
         """
+        # print(world.ball.current_state.global_velocity)
         # TODO #3244: Make this a nicer visualization
         return create_validation_geometry(
             [
