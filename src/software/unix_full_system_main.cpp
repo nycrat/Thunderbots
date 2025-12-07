@@ -105,8 +105,11 @@ int main(int argc, char** argv)
             minimum_log_level = WARNING;
         } else if (args.log_level == "FATAL") {
             minimum_log_level = FATAL;
-        } else {
-            std::cout << "error: --log_level " << args.log_level << " is not a valid option." << std::endl;;
+        }
+        else
+        {
+            std::cout << "error: --log_level " << args.log_level
+                      << " is not a valid option." << std::endl;
             return 2;
         }
 
