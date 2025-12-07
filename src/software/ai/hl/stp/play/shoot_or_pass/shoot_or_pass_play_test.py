@@ -10,7 +10,7 @@ from software.simulated_tests.simulated_test_fixture import (
 )
 
 
-def test_offense_play(simulated_test_runner):
+def test_shoot_or_pass_play(simulated_test_runner):
     def setup(start_point):
         # starting point must be Point
         ball_initial_pos = start_point
@@ -56,7 +56,8 @@ def test_offense_play(simulated_test_runner):
         yellow_play = Play()
         yellow_play.name = PlayName.HaltPlay
 
-        simulated_test_runner.blue_full_system_proto_unix_io.send_proto(Play, blue_play)
+        simulated_test_runner.blue_full_system_proto_unix_io.send_proto(
+            Play, blue_play)
         simulated_test_runner.yellow_full_system_proto_unix_io.send_proto(
             Play, yellow_play
         )
