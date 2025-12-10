@@ -78,6 +78,12 @@ install_gamecontroller_macos () {
     sudo rm -rf /tmp/tbots_download_cache/ssl-game-controller-3.17.0 /tmp/tbots_download_cache/go /tmp/tbots_download_cache/go.tar.gz /tmp/tbots_download_cache/ssl-game-controller.zip
 }
 
+install_gamecontroller_arch () {
+    wget https://github.com/RoboCup-SSL/ssl-game-controller/releases/download/v3.16.1/ssl-game-controller_v3.16.1_linux_${arch} -O /tmp/tbots_download_cache/gamecontroller
+    sudo mv /tmp/tbots_download_cache/gamecontroller /opt/tbotspython/gamecontroller
+    sudo chmod +x /opt/tbotspython/gamecontroller
+}
+
 install_java () {
     java_home=""
     java_download=https://download.oracle.com/java/21/latest/jdk-21_linux-aarch64_bin.tar.gz
@@ -99,6 +105,18 @@ install_java_macos () {
     sudo mv /tmp/tbots_download_cache/jdk-21*/Contents/Home /opt/tbotspython/bin/jdk
     rm /tmp/tbots_download_cache/jdk-21.tar.gz
     rm -rf /tmp/tbots_download_cache/jdk
+}
+
+install_arch () {
+    java_home=""
+    java_download=https://download.oracle.com/java/21/latest/jdk-21_linux-aarch64_bin.tar.gz
+    if is_x86 $1; then
+        java_download=https://download.oracle.com/java/21/latest/jdk-21_linux-x64_bin.tar.gz
+    fi
+    wget -N $java_download -O /tmp/tbots_download_cache/jdk-21.tar.gz
+    tar -xzf /tmp/tbots_download_cache/jdk-21.tar.gz -C /opt/tbotspython/
+    mv /opt/tbotspython/jdk-21* /opt/tbotspython/bin/jdk
+    rm /tmp/tbots_download_cache/jdk-21.tar.gz
 }
 
 install_python_dev_cross_compile_headers() {
