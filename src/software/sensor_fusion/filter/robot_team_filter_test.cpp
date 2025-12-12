@@ -13,7 +13,7 @@ TEST(RobotTeamFilterTest, one_robot_detection_update_test)
     // old team starts with a robot with id = 0
     old_team.updateRobots(
         {Robot(0, Point(0, 1), Vector(-1, -2), Angle::half(),
-               AngularVelocity::threeQuarter(), Timestamp::fromSeconds(0))});
+               AngularVelocity::fromDegrees(270.0), Timestamp::fromSeconds(0))});
 
     robot_detection.id          = 0;
     robot_detection.position    = Point(1.0, -2.5);
