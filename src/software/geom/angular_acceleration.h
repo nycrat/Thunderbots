@@ -28,7 +28,7 @@ class AngularAcceleration : public Angle
 
     constexpr AngularAcceleration abs() const;
 
-    // Delete methods that do not apply to angular velocity
+    // Delete methods that do not apply to angular acceleration
     static constexpr Angle quarter()              = delete;
     static constexpr Angle half()                 = delete;
     static constexpr Angle threeQuarter()         = delete;
