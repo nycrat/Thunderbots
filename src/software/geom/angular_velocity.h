@@ -12,18 +12,76 @@
 class AngularVelocity : public Angle
 {
    public:
+    /**
+     * Constructs angular velocity of zero.
+     */
     explicit constexpr AngularVelocity();
+
+    /**
+     * Constructs angular velocity from an angle, converting unit of angle to a change in
+     * angle per second.
+     */
     explicit constexpr AngularVelocity(const Angle& angle);
 
+    /**
+     * Zero angular velocity.
+     */
     static constexpr AngularVelocity zero();
+
+    /**
+     * Quarter turn every second (90°/s)
+     */
     static constexpr AngularVelocity quarter();
+
+    /**
+     * Half turn every second (180°/s)
+     */
     static constexpr AngularVelocity half();
+
+    /**
+     * Three-quarter turn every second (270°/s)
+     */
     static constexpr AngularVelocity threeQuarter();
+
+    /**
+     * Full turn every second (360°/s)
+     */
     static constexpr AngularVelocity full();
+
+    /**
+     * Constructs an angular velocity from a value in radians per second.
+     *
+     * @param rad the angular velocity in radians per second.
+     *
+     * @return the constructed angular velocity
+     */
     static constexpr AngularVelocity fromRadians(double rad);
+
+    /**
+     * Constructs an angular velocity from a value in degrees per second.
+     *
+     * @param deg the angular velocity in degrees per second.
+     *
+     * @return the constructed angular velocity
+     */
     static constexpr AngularVelocity fromDegrees(double deg);
 
+    /**
+     * Returns the absolute value of this angular velocity.
+     *
+     * @return the absolute value of this angular velocity.
+     */
     constexpr AngularVelocity abs() const;
+
+    /**
+     * Returns the rotational velocity difference between this angular velocity and
+     * another angular velocity
+     *
+     * @param other the second angular velocity.
+     *
+     * @return the absolute difference in angular velocity between this angular velocity
+     * and other
+     */
     constexpr AngularVelocity minDiff(const AngularVelocity& other);
 
     // Delete methods that do not apply to angular velocity
