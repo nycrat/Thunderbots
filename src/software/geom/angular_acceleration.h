@@ -12,14 +12,56 @@
 class AngularAcceleration : public Angle
 {
    public:
+    /**
+     * Constructs angular acceleration of zero.
+     */
     explicit constexpr AngularAcceleration();
+
+    /**
+     * Constructs angular acceleration from an angle, converting unit of angle to a change
+     * in angle per seconds squared.
+     */
     explicit constexpr AngularAcceleration(const Angle& angle);
 
+    /**
+     * Zero angular velocity.
+     */
     static constexpr AngularAcceleration zero();
+
+    /**
+     * Constructs an angular acceleration from a value in radians per second squared.
+     *
+     * @param rad the angular acceleration in radians per second squared.
+     *
+     * @return the constructed angular acceleration
+     */
     static constexpr AngularAcceleration fromRadians(double rad);
+
+    /**
+     * Constructs an angular acceleration from a value in degrees per second squared.
+     *
+     * @param rad the angular acceleration in degrees per second squared.
+     *
+     * @return the constructed angular acceleration
+     */
     static constexpr AngularAcceleration fromDegrees(double deg);
 
+    /**
+     * Returns the absolute value of this angular acceleration.
+     *
+     * @return the absolute value of this angular acceleration.
+     */
     constexpr AngularAcceleration abs() const;
+
+    /**
+     * Returns the rotational acceleration difference between this angular acceleration
+     * and and another angular acceleration.
+     *
+     * @param other the second angular acceleration.
+     *
+     * @return the absolute difference in angular acceleration between this angular
+     * acceleration acceleration and other
+     */
     constexpr AngularAcceleration minDiff(const AngularAcceleration& other);
 
     // Delete methods that do not apply to angular acceleration
