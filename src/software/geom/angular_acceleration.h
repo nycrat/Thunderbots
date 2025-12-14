@@ -1,14 +1,6 @@
 #pragma once
 
 #include "software/geom/angle.h"
-/**
- * We also use variables of type 'Angle' to represent angular acceleration, since they
- * are essentially represented the same. This typedef allows us to refer to Angles as
- * AngularAcceleration, which makes the interfaces more intuitive.
- * TODO (#3093): Not all methods of Angle class make sense for AngularAcceleration!
- *  E.g. Angle::clamp does not make sense in the context of AngularAcceleration, as
- *  360 deg/s^2 is different from 0 deg/s^2, but 360 deg is the same as 0 deg.
- */
 
 /**
  * A typesafe representation of an angular acceleration, using the Angle class.
@@ -21,12 +13,14 @@ class AngularAcceleration : public Angle
 {
    public:
     explicit constexpr AngularAcceleration();
+    explicit constexpr AngularAcceleration(const Angle& angle);
 
     static constexpr AngularAcceleration zero();
     static constexpr AngularAcceleration fromRadians(double rad);
     static constexpr AngularAcceleration fromDegrees(double deg);
 
     constexpr AngularAcceleration abs() const;
+    constexpr AngularAcceleration minDiff(const AngularAcceleration& other);
 
     // Delete methods that do not apply to angular acceleration
     static constexpr Angle quarter()              = delete;
@@ -43,23 +37,23 @@ class AngularAcceleration : public Angle
     double tan() const                            = delete;
     constexpr Angle clamp() const                 = delete;
     constexpr Angle minDiff(const Angle&) const   = delete;
-
-   private:
-    explicit constexpr AngularAcceleration(double rads);
 };
 
 inline constexpr AngularAcceleration::AngularAcceleration() : Angle(0.0) {}
 
-inline constexpr AngularAcceleration::AngularAcceleration(double rads) : Angle(rads) {}
+inline constexpr AngularAcceleration::AngularAcceleration(const Angle& angle)
+    : Angle(angle)
+{
+}
 
 inline constexpr AngularAcceleration AngularAcceleration::zero()
 {
-    return AngularAcceleration(0.0);
+    return AngularAcceleration(Angle::zero());
 }
 
 inline constexpr AngularAcceleration AngularAcceleration::fromRadians(double rad)
 {
-    return AngularAcceleration(rad);
+    return AngularAcceleration(Angle::fromRadians(rad));
 }
 
 inline constexpr AngularAcceleration AngularAcceleration::fromDegrees(double deg)
@@ -70,4 +64,11 @@ inline constexpr AngularAcceleration AngularAcceleration::fromDegrees(double deg
 inline constexpr AngularAcceleration AngularAcceleration::abs() const
 {
     return AngularAcceleration::fromRadians(toRadians() < 0 ? -toRadians() : toRadians());
+}
+
+inline constexpr AngularAcceleration AngularAcceleration::minDiff(
+    const AngularAcceleration& other)
+{
+    return AngularAcceleration::fromRadians(
+        std::fabs(this->toRadians() - other.toRadians()));
 }

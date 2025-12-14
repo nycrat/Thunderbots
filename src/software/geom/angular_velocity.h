@@ -13,21 +13,20 @@ class AngularVelocity : public Angle
 {
    public:
     explicit constexpr AngularVelocity();
+    explicit constexpr AngularVelocity(const Angle& angle);
 
     static constexpr AngularVelocity zero();
+    static constexpr AngularVelocity quarter();
+    static constexpr AngularVelocity half();
+    static constexpr AngularVelocity threeQuarter();
+    static constexpr AngularVelocity full();
     static constexpr AngularVelocity fromRadians(double rad);
     static constexpr AngularVelocity fromDegrees(double deg);
 
     constexpr AngularVelocity abs() const;
-
-    // NOTE: kind of weird we have two ways of create zero angle / angular_velocity
-    // static constexpr Angle zero()                 = delete;
+    constexpr AngularVelocity minDiff(const AngularVelocity& other);
 
     // Delete methods that do not apply to angular velocity
-    static constexpr Angle quarter()              = delete;
-    static constexpr Angle half()                 = delete;
-    static constexpr Angle threeQuarter()         = delete;
-    static constexpr Angle full()                 = delete;
     static Angle asin(double)                     = delete;
     static Angle acos(double)                     = delete;
     static Angle atan(double)                     = delete;
@@ -38,31 +37,53 @@ class AngularVelocity : public Angle
     double tan() const                            = delete;
     constexpr Angle clamp() const                 = delete;
     constexpr Angle minDiff(const Angle&) const   = delete;
-
-   private:
-    explicit constexpr AngularVelocity(double rads);
 };
 
 inline constexpr AngularVelocity::AngularVelocity() : Angle(0.0) {}
 
-inline constexpr AngularVelocity::AngularVelocity(double rads) : Angle(rads) {}
+inline constexpr AngularVelocity::AngularVelocity(const Angle& angle) : Angle(angle) {}
 
 inline constexpr AngularVelocity AngularVelocity::zero()
 {
-    return AngularVelocity(0.0);
+    return AngularVelocity(Angle::zero());
+}
+
+inline constexpr AngularVelocity AngularVelocity::quarter()
+{
+    return AngularVelocity(Angle::quarter());
+}
+
+inline constexpr AngularVelocity AngularVelocity::half()
+{
+    return AngularVelocity(Angle::half());
+}
+
+inline constexpr AngularVelocity AngularVelocity::threeQuarter()
+{
+    return AngularVelocity(Angle::threeQuarter());
+}
+
+inline constexpr AngularVelocity AngularVelocity::full()
+{
+    return AngularVelocity(Angle::full());
 }
 
 inline constexpr AngularVelocity AngularVelocity::fromRadians(double rad)
 {
-    return AngularVelocity(rad);
+    return AngularVelocity(Angle::fromRadians(rad));
 }
 
 inline constexpr AngularVelocity AngularVelocity::fromDegrees(double deg)
 {
-    return AngularVelocity::fromRadians(deg / 180.0 * M_PI);
+    return AngularVelocity(Angle::fromDegrees(deg));
 }
 
 inline constexpr AngularVelocity AngularVelocity::abs() const
 {
     return AngularVelocity::fromRadians(toRadians() < 0 ? -toRadians() : toRadians());
+}
+
+inline constexpr AngularVelocity AngularVelocity::minDiff(const AngularVelocity& other)
+{
+    return AngularVelocity::fromRadians(std::fabs(this->toRadians() - other.toRadians()));
 }
