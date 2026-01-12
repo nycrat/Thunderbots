@@ -1,5 +1,6 @@
 from threading import Thread
 import queue
+from proto.play_pb2 import Play
 
 import os
 
@@ -118,6 +119,8 @@ class ProtoUnixIO:
                       to put the proto. Otherwise, proto will be dropped if queue is full.
         :param timeout: If block is True, then wait for this many seconds
         """
+        if proto_class == Play:
+            print(f"send proto {proto_class}")
         if proto_class.DESCRIPTOR.full_name in self.proto_observers:
             for buffer in self.proto_observers[proto_class.DESCRIPTOR.full_name]:
                 buffer.put(data, block, timeout)

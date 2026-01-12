@@ -31,6 +31,9 @@ void BallPlacementPlay::updateTactics(const PlayUpdate &play_update)
             *createPointProto(placement_point.value());
 
         LOG(VISUALIZE) << ball_placement_vis_msg;
+        LOG(DEBUG) << "point: " << placement_point.value().x() << " " << placement_point.value().y();
+    } else {
+        LOG(DEBUG) << "no point";
     }
 }
 

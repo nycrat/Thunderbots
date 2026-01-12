@@ -360,6 +360,8 @@ class Gamecontroller:
             api_input.continue_action.CopyFrom(start_placement)
             ci_input.api_inputs.append(api_input)
 
+        print("send gc command: ", gc_command, final_ball_placement_point)
+
         ci_output_list = self.send_ci_input(ci_input)
 
         return ci_output_list
