@@ -2,4 +2,14 @@
 
 #include "software/geom/generic_angle.h"
 
-using AngularAccerlation = GenericAngle<_AngleAcceleration>;
+class AngularAcceleration : public GenericAngle<AngularAcceleration>
+{
+   public:
+    constexpr AngularAcceleration() = default;
+    explicit constexpr AngularAcceleration(double rad);
+};
+
+constexpr AngularAcceleration::AngularAcceleration(double rad)
+{
+    this->rads = rad;
+}

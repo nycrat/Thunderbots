@@ -5,10 +5,6 @@
 
 #include "software/geom/geom_constants.h"
 
-class _AngleBase;
-class _AngleVelocity;
-class _AngleAcceleration;
-
 /**
  * A typesafe representation of a generic angle.
  *
@@ -17,34 +13,34 @@ class _AngleAcceleration;
  *
  * @tparam T The type of angle being represented
  */
-template <typename T>
-class GenericAngle final
+template <typename Derived>
+class GenericAngle
 {
    public:
     /**
      * The zero angle.
      */
-    static constexpr GenericAngle<T> zero();
+    static constexpr Derived zero();
 
     /**
      * The quarter-turn angle (90°).
      */
-    static constexpr GenericAngle<T> quarter();
+    static constexpr Derived quarter();
 
     /**
      * The half-turn angle (180°).
      */
-    static constexpr GenericAngle<T> half();
+    static constexpr Derived half();
 
     /**
      * The three-quarter turn angle (270°).
      */
-    static constexpr GenericAngle<T> threeQuarter();
+    static constexpr Derived threeQuarter();
 
     /**
      * The full-turn angle (360°).
      */
-    static constexpr GenericAngle<T> full();
+    static constexpr Derived full();
 
     /**
      * Constructs an angle from a value in radians.
@@ -53,7 +49,7 @@ class GenericAngle final
      *
      * @return the constructed angle
      */
-    static constexpr GenericAngle<T> fromRadians(double rad);
+    static constexpr Derived fromRadians(double rad);
 
     /**
      * Constructs an angle from a value in degrees.
@@ -62,39 +58,7 @@ class GenericAngle final
      *
      * @return the constructed angle
      */
-    static constexpr GenericAngle<T> fromDegrees(double deg);
-
-    /**
-     * Computes the arcsine of a value.
-     *
-     * @param x the value.
-     *
-     * @return the angle.
-     */
-    static GenericAngle<T> asin(double x);
-
-    /**
-     * Computes the arccosine of a value.
-     *
-     * @param x the value.
-     *
-     * @return the angle.
-     */
-    static GenericAngle<T> acos(double x);
-
-    /**
-     * Computes the arctangent of a value.
-     *
-     * @param x the value.
-     *
-     * @return the angle.
-     */
-    static GenericAngle<T> atan(double x);
-
-    /**
-     * Constructs the "zero" angle.
-     */
-    explicit constexpr GenericAngle<T>();
+    static constexpr Derived fromDegrees(double deg);
 
     /**
      * Converts this angle to a value in radians.
@@ -111,31 +75,11 @@ class GenericAngle final
     constexpr double toDegrees() const;
 
     /**
-     * Computes the modulus of a division between this angle and another
-     * angle.
-     *
-     * @param divisor the divisor.
-     *
-     * @return the modulus of this Angle ÷ divisor.
-     */
-    constexpr GenericAngle<T> mod(GenericAngle<T> divisor) const;
-
-    /**
-     * Computes the remainder of a division between this angle and
-     * another angle.
-     *
-     * @param divisor the divisor.
-     *
-     * @return the remainder of this Angle ÷ divisor.
-     */
-    constexpr GenericAngle<T> remainder(const GenericAngle<T>& divisor) const;
-
-    /**
      * Returns the absolute value of this angle.
      *
      * @return the absolute value of this angle.
      */
-    constexpr GenericAngle<T> abs() const;
+    constexpr Derived abs() const;
 
     /**
      * Checks whether the angle is finite.
@@ -145,37 +89,6 @@ class GenericAngle final
     bool isFinite() const;
 
     /**
-     * Computes the sine of this angle.
-     *
-     * @return the sine of this angle.
-     */
-    double sin() const;
-
-    /**
-     * Computes the cosine of this angle.
-     *
-     * @return the cosine of this angle.
-     */
-    double cos() const;
-
-    /**
-     * Computes the tangent of this angle.
-     *
-     * @return the tangent of this angle.
-     */
-    double tan() const;
-
-    /**
-     * Limits this angle to [−π, π].
-     *
-     * The angle is rotated by a multiple of 2π until it lies within the target
-     * interval.
-     *
-     * @return the clamped angle.
-     */
-    constexpr GenericAngle<T> clamp() const;
-
-    /**
      * Returns the smallest possible rotational difference between this angle
      * and another angle.
      *
@@ -183,287 +96,242 @@ class GenericAngle final
      *
      * @return the angle between this Angle and other, in the range [0, π].
      */
-    constexpr GenericAngle<T> minDiff(const GenericAngle<T>& other) const;
+    constexpr Derived minDiff(const Derived& other) const;
 
-   private:
+    /**
+     * Negates an angle.
+     *
+     * @param angle the angle to negate.
+     *
+     * @return the negated angle
+     */
+    constexpr Derived operator-() const __attribute__((warn_unused_result));
+
+    /**
+     * Adds two angles.
+     *
+     * @param x the first addend.
+     * @param y the second addend.
+     *
+     * @return the sum of the angles
+     */
+    constexpr Derived operator+(const Derived& other) const
+        __attribute__((warn_unused_result));
+
+    /**
+     * Subtracts two angles.
+     *
+     * @param x the minuend.
+     *
+     * @param y the subtrahend.
+     *
+     * @return the difference between the minuend and subtrahend.
+     */
+    constexpr Derived operator-(const Derived& other) const
+        __attribute__((warn_unused_result));
+
+    /**
+     * Multiplies an angle by a scalar factor.
+     *
+     * @param angle the angle.
+     * @param scale the scalar factor.
+     *
+     * @return the product of the angle and the scalar factor
+     */
+    constexpr Derived operator*(double scale) const __attribute__((warn_unused_result));
+
+    /**
+     * Multiplies an angle by a scalar factor.
+     *
+     * @param angle the angle.
+     * @param scale the scalar factor.
+     *
+     * @return the product of the angle and the scalar factor
+     */
+    // template <typename D>
+    // friend constexpr Derived operator*(double scale, const GenericAngle<D>& a);
+
+    /**
+     * Divides an angle by a scalar divisor.
+     *
+     * @param angle the angle.
+     * @param divisor the scalar divisor.
+     *
+     * @return the quotient of this Angle ÷ the divisor.
+     */
+    constexpr Derived operator/(double divisor) const __attribute__((warn_unused_result));
+
+    /**
+     * Divides two angles.
+     *
+     * @param x the divident.
+     * @param y the divisor.
+     *
+     * @return the quotient of the divident ÷ the divisor.
+     */
+    constexpr double operator/(const Derived& divisor) const
+        __attribute__((warn_unused_result));
+
+    /**
+     * Adds an angle to another angle.
+     *
+     * @param x the angle to add to.
+     * @param y the angle to add.
+     *
+     * @return the new angle x
+     */
+    Derived& operator+=(const Derived& other);
+
+    /**
+     * Subtracts an angle from an angle.
+     *
+     * @param x the angle to subtract from.
+     * @param y the angle to subtract.
+     *
+     * @return the new angle x
+     */
+    Derived& operator-=(const Derived& other);
+
+    /**
+     * Scales an angle by a factor.
+     *
+     * @param angle the angle to scale.
+     * @param scale the scalar factor.
+     *
+     * @return the scaled angle.
+     */
+    Derived& operator*=(double scale);
+
+    /**
+     * Divides an angle by a scalar divisor.
+     *
+     * @param angle the angle to scale.
+     *
+     * @param divisor the scalar divisor.
+     *
+     * @return the scaled angle.
+     */
+    Derived& operator/=(double divisor);
+
+    /**
+     * Compares two angles.
+     *
+     * @param x the first angle.
+     *
+     * @param y the second angle.
+     *
+     * @return true if x is strictly less than y, and false otherwise
+     */
+    constexpr bool operator<(const Derived& other) const;
+
+    /**
+     * Compares two angles.
+     *
+     * @param x the first angle.
+     * @param y the second angle.
+     *
+     * @return true if x is strictly greater than y, and false otherwise.
+     */
+    constexpr bool operator>(const Derived& other) const;
+
+    /**
+     * Compares two angles.
+     *
+     * @param x the first angle.
+     * @param y the second angle.
+     *
+     * @return true if x is less than or equal to y, and false otherwise.
+     */
+    constexpr bool operator<=(const Derived& other) const;
+
+    /**
+     * Compares two angles.
+     *
+     * @param x the first angle.
+     * @param y the second angle.
+     *
+     * @return true if x is greater than or equal to y, and false otherwise.
+     */
+    constexpr bool operator>=(const Derived& other) const;
+
+    /**
+     * Compares two angles for equality
+     *
+     * @param x the first angle.
+     * @param y the second angle.
+     *
+     * @return true if x is equal to y, and false otherwise.
+     */
+    bool operator==(const Derived& other) const;
+
+    /**
+     * Compares two angles for inequality.
+     *
+     * @param x the first angle.
+     * @param y the second angle.
+     *
+     * @return true if x is not equal to y, and false otherwise
+     */
+    constexpr bool operator!=(const Derived& other) const;
+
+    /**
+     * Prints an Angle to a stream
+     *
+     * @param os the stream to print to
+     * @param a the Point to print
+     *
+     * @return the stream with the Angle printed
+     */
+    template <typename D>
+    friend std::ostream& operator<<(std::ostream& os, const GenericAngle<D>& a);
+
+   protected:
     /**
      * The measurement in radians of this Angle.
      */
     double rads;
-
-    explicit constexpr GenericAngle<T>(double rads);
 };
 
-/**
- * Negates an angle.
- *
- * @param angle the angle to negate.
- *
- * @return the negated angle
- */
 template <typename T>
-constexpr GenericAngle<T> operator-(const GenericAngle<T>& angle)
-    __attribute__((warn_unused_result));
-
-/**
- * Adds two angles.
- *
- * @param x the first addend.
- * @param y the second addend.
- *
- * @return the sum of the angles
- */
-template <typename T>
-constexpr GenericAngle<T> operator+(const GenericAngle<T>& x, const GenericAngle<T>& y)
-    __attribute__((warn_unused_result));
-
-/**
- * Subtracts two angles.
- *
- * @param x the minuend.
- *
- * @param y the subtrahend.
- *
- * @return the difference between the minuend and subtrahend.
- */
-template <typename T>
-constexpr GenericAngle<T> operator-(const GenericAngle<T>& x, const GenericAngle<T>& y)
-    __attribute__((warn_unused_result));
-
-/**
- * Multiplies an angle by a scalar factor.
- *
- * @param angle the angle.
- * @param scale the scalar factor.
- *
- * @return the product of the angle and the scalar factor
- */
-template <typename T>
-constexpr GenericAngle<T> operator*(const GenericAngle<T>& angle, double scale)
-    __attribute__((warn_unused_result));
-
-/**
- * Multiplies an angle by a scalar factor.
- *
- * @param scale the scalar factor.
- * @param angle the angle.
- *
- * @return the product of the angle and the scalar factor
- */
-template <typename T>
-constexpr GenericAngle<T> operator*(double scale, const GenericAngle<T>& angle)
-    __attribute__((warn_unused_result));
-
-/**
- * Divides an angle by a scalar divisor.
- *
- * @param angle the angle.
- * @param divisor the scalar divisor.
- *
- * @return the quotient of this Angle ÷ the divisor.
- */
-template <typename T>
-constexpr GenericAngle<T> operator/(const GenericAngle<T>& angle, double divisor)
-    __attribute__((warn_unused_result));
-
-/**
- * Divides two angles.
- *
- * @param x the divident.
- * @param y the divisor.
- *
- * @return the quotient of the divident ÷ the divisor.
- */
-template <typename T>
-constexpr double operator/(const GenericAngle<T>& x, const GenericAngle<T>& y)
-    __attribute__((warn_unused_result));
-
-/**
- * Adds an angle to another angle.
- *
- * @param x the angle to add to.
- * @param y the angle to add.
- *
- * @return the new angle x
- */
-template <typename T>
-GenericAngle<T>& operator+=(GenericAngle<T>& x, const GenericAngle<T>& y);
-
-/**
- * Subtracts an angle from an angle.
- *
- * @param x the angle to subtract from.
- * @param y the angle to subtract.
- *
- * @return the new angle x
- */
-template <typename T>
-GenericAngle<T>& operator-=(GenericAngle<T>& x, const GenericAngle<T>& y);
-
-/**
- * Scales an angle by a factor.
- *
- * @param angle the angle to scale.
- * @param scale the scalar factor.
- *
- * @return the scaled angle.
- */
-template <typename T>
-GenericAngle<T>& operator*=(GenericAngle<T>& angle, double scale);
-
-/**
- * Divides an angle by a scalar divisor.
- *
- * @param angle the angle to scale.
- *
- * @param divisor the scalar divisor.
- *
- * @return the scaled angle.
- */
-template <typename T>
-GenericAngle<T>& operator/=(GenericAngle<T>& angle, double divisor);
-
-/**
- * Compares two angles.
- *
- * @param x the first angle.
- *
- * @param y the second angle.
- *
- * @return true if x is strictly less than y, and false otherwise
- */
-template <typename T>
-constexpr bool operator<(const GenericAngle<T>& x, const GenericAngle<T>& y);
-
-/**
- * Compares two angles.
- *
- * @param x the first angle.
- * @param y the second angle.
- *
- * @return true if x is strictly greater than y, and false otherwise.
- */
-template <typename T>
-constexpr bool operator>(const GenericAngle<T>& x, const GenericAngle<T>& y);
-
-/**
- * Compares two angles.
- *
- * @param x the first angle.
- * @param y the second angle.
- *
- * @return true if x is less than or equal to y, and false otherwise.
- */
-template <typename T>
-constexpr bool operator<=(const GenericAngle<T>& x, const GenericAngle<T>& y);
-
-/**
- * Compares two angles.
- *
- * @param x the first angle.
- * @param y the second angle.
- *
- * @return true if x is greater than or equal to y, and false otherwise.
- */
-template <typename T>
-constexpr bool operator>=(const GenericAngle<T>& x, const GenericAngle<T>& y);
-
-/**
- * Compares two angles for equality
- *
- * @param x the first angle.
- * @param y the second angle.
- *
- * @return true if x is equal to y, and false otherwise.
- */
-template <typename T>
-bool operator==(const GenericAngle<T>& x, const GenericAngle<T>& y);
-
-/**
- * Compares two angles for inequality.
- *
- * @param x the first angle.
- * @param y the second angle.
- *
- * @return true if x is not equal to y, and false otherwise
- */
-template <typename T>
-constexpr bool operator!=(const GenericAngle<T>& x, const GenericAngle<T>& y);
-
-/**
- * Prints an Angle to a stream
- *
- * @param os the stream to print to
- * @param a the Point to print
- *
- * @return the stream with the Angle printed
- */
-template <typename T>
-inline std::ostream& operator<<(std::ostream& os, const GenericAngle<T>& a);
-
-template <typename T>
-inline constexpr GenericAngle<T> GenericAngle<T>::zero()
+inline constexpr T GenericAngle<T>::zero()
 {
-    return GenericAngle<T>();
+    return T::fromRadians(0.0);
 }
 
 template <typename T>
-inline constexpr GenericAngle<T> GenericAngle<T>::quarter()
+inline constexpr T GenericAngle<T>::quarter()
 {
-    return GenericAngle<T>(M_PI / 2.0);
+    return T::fromRadians(M_PI / 2.0);
 }
 
 template <typename T>
-inline constexpr GenericAngle<T> GenericAngle<T>::half()
+inline constexpr T GenericAngle<T>::half()
 {
-    return GenericAngle<T>(M_PI);
+    return T::fromRadians(M_PI);
 }
 
 template <typename T>
-inline constexpr GenericAngle<T> GenericAngle<T>::threeQuarter()
+inline constexpr T GenericAngle<T>::threeQuarter()
 {
-    return GenericAngle<T>(3.0 / 2.0 * M_PI);
+    return T::fromRadians(3.0 / 2.0 * M_PI);
 }
 
 template <typename T>
-inline constexpr GenericAngle<T> GenericAngle<T>::full()
+inline constexpr T GenericAngle<T>::full()
 {
-    return GenericAngle<T>(2.0 * M_PI);
+    return T::fromRadians(2.0 * M_PI);
 }
 
 template <typename T>
-inline constexpr GenericAngle<T> GenericAngle<T>::fromRadians(double rad)
+inline constexpr T GenericAngle<T>::fromRadians(double rad)
 {
-    return GenericAngle<T>(rad);
+    return T(rad);
 }
 
 template <typename T>
-inline constexpr GenericAngle<T> GenericAngle<T>::fromDegrees(double deg)
+inline constexpr T GenericAngle<T>::fromDegrees(double deg)
 {
-    return GenericAngle<T>(deg / 180.0 * M_PI);
-}
-
-template <typename T>
-inline GenericAngle<T> GenericAngle<T>::asin(double x)
-{
-    return GenericAngle<T>::fromRadians(std::asin(x));
-}
-
-template <typename T>
-inline GenericAngle<T> GenericAngle<T>::acos(double x)
-{
-    return fromRadians(std::acos(x));
-}
-
-template <typename T>
-inline GenericAngle<T> GenericAngle<T>::atan(double x)
-{
-    return GenericAngle<T>::fromRadians(std::atan(x));
-}
-
-template <typename T>
-inline constexpr GenericAngle<T>::GenericAngle() : rads(0.0)
-{
+    return T::fromRadians(deg / 180.0 * M_PI);
 }
 
 template <typename T>
@@ -479,184 +347,121 @@ inline constexpr double GenericAngle<T>::toDegrees() const
 }
 
 template <typename T>
-inline constexpr GenericAngle<T> GenericAngle<T>::mod(GenericAngle<T> divisor) const
+inline constexpr T GenericAngle<T>::abs() const
 {
-    if (divisor.toRadians() < FIXED_EPSILON)
-    {
-        return GenericAngle<T>::fromRadians(toRadians());
-    }
-    else
-    {
-        return GenericAngle<T>::fromRadians(
-            toRadians() -
-            static_cast<double>(static_cast<long>(toRadians() / divisor.toRadians())) *
-                divisor.toRadians());
-    }
-}
-
-template <typename T>
-inline constexpr GenericAngle<T> GenericAngle<T>::remainder(
-    const GenericAngle<T>& divisor) const
-{
-    return GenericAngle<T>::fromRadians(
-        toRadians() - static_cast<double>(static_cast<long>(
-                          (toRadians() / divisor.toRadians()) >= 0
-                              ? (toRadians() / divisor.toRadians() + 0.5)
-                              : (toRadians() / divisor.toRadians() - 0.5))) *
-                          divisor.toRadians());
-}
-
-template <typename T>
-inline constexpr GenericAngle<T> GenericAngle<T>::abs() const
-{
-    return GenericAngle<T>::fromRadians(toRadians() < 0 ? -toRadians() : toRadians());
+    return T::fromRadians(rads < 0 ? -rads : rads);
 }
 
 template <typename T>
 inline bool GenericAngle<T>::isFinite() const
 {
-    return std::isfinite(toRadians());
+    return std::isfinite(rads);
 }
 
 template <typename T>
-inline double GenericAngle<T>::sin() const
+inline constexpr T GenericAngle<T>::minDiff(const T& other) const
 {
-    return std::sin(toRadians());
+    return T::fromRadians(fabs(toRadians() - other.toRadians()));
 }
 
 template <typename T>
-inline double GenericAngle<T>::cos() const
+inline constexpr T GenericAngle<T>::operator-() const
 {
-    return std::cos(toRadians());
+    return T::fromRadians(-rads);
 }
 
 template <typename T>
-inline double GenericAngle<T>::tan() const
+inline constexpr T GenericAngle<T>::operator+(const T& other) const
 {
-    return std::tan(toRadians());
+    return T::fromRadians(rads + other.toRadians());
 }
 
 template <typename T>
-inline constexpr GenericAngle<T> GenericAngle<T>::clamp() const
+inline constexpr T GenericAngle<T>::operator-(const T& other) const
 {
-    return remainder(GenericAngle<T>::full());
+    return T::fromRadians(rads - other.toRadians());
 }
 
 template <typename T>
-inline constexpr GenericAngle<T> GenericAngle<T>::minDiff(
-    const GenericAngle<T>& other) const
+inline constexpr T GenericAngle<T>::operator*(double scale) const
 {
-    return (*this - other).clamp().abs();
+    return T::fromRadians(rads * scale);
 }
 
 template <typename T>
-inline constexpr GenericAngle<T>::GenericAngle(double rads) : rads(rads)
+inline constexpr T GenericAngle<T>::operator/(double divisor) const
 {
+    return T::fromRadians(rads / divisor);
 }
 
 template <typename T>
-inline constexpr GenericAngle<T> operator-(const GenericAngle<T>& angle)
+inline constexpr double GenericAngle<T>::operator/(const T& y) const
 {
-    return GenericAngle<T>::fromRadians(-angle.toRadians());
+    return rads / y.toRadians();
 }
 
 template <typename T>
-inline constexpr GenericAngle<T> operator+(const GenericAngle<T>& x,
-                                           const GenericAngle<T>& y)
+inline T& GenericAngle<T>::operator+=(const T& y)
 {
-    return GenericAngle<T>::fromRadians(x.toRadians() + y.toRadians());
+    T& self     = static_cast<T&>(*this);
+    return self = self + y;
 }
 
 template <typename T>
-inline constexpr GenericAngle<T> operator-(const GenericAngle<T>& x,
-                                           const GenericAngle<T>& y)
+inline T& GenericAngle<T>::operator-=(const T& y)
 {
-    return GenericAngle<T>::fromRadians(x.toRadians() - y.toRadians());
+    T& self     = static_cast<T&>(*this);
+    return self = self - y;
 }
 
 template <typename T>
-inline constexpr GenericAngle<T> operator*(const GenericAngle<T>& angle, double scale)
+inline T& GenericAngle<T>::operator*=(double scale)
 {
-    return GenericAngle<T>::fromRadians(angle.toRadians() * scale);
+    T& self     = static_cast<T&>(*this);
+    return self = self * scale;
 }
 
 template <typename T>
-inline constexpr GenericAngle<T> operator*(double scale, const GenericAngle<T>& angle)
+inline T& GenericAngle<T>::operator/=(double divisor)
 {
-    return GenericAngle<T>::fromRadians(scale * angle.toRadians());
+    T& self     = static_cast<T&>(*this);
+    return self = self / divisor;
 }
 
 template <typename T>
-inline constexpr GenericAngle<T> operator/(const GenericAngle<T>& angle, double divisor)
+inline constexpr bool GenericAngle<T>::operator<(const T& y) const
 {
-    return GenericAngle<T>::fromRadians(angle.toRadians() / divisor);
+    return rads < y.toRadians();
 }
 
 template <typename T>
-inline constexpr double operator/(const GenericAngle<T>& x, const GenericAngle<T>& y)
+inline constexpr bool GenericAngle<T>::operator>(const T& y) const
 {
-    return x.toRadians() / y.toRadians();
+    return rads > y.toRadians();
 }
 
 template <typename T>
-inline GenericAngle<T>& operator+=(GenericAngle<T>& x, const GenericAngle<T>& y)
+inline constexpr bool GenericAngle<T>::operator<=(const T& y) const
 {
-    return x = x + y;
+    return rads <= y.toRadians();
 }
 
 template <typename T>
-inline GenericAngle<T>& operator-=(GenericAngle<T>& x, const GenericAngle<T>& y)
+inline constexpr bool GenericAngle<T>::operator>=(const T& y) const
 {
-    return x = x - y;
+    return rads >= y.toRadians();
 }
 
 template <typename T>
-inline GenericAngle<T>& operator*=(GenericAngle<T>& angle, double scale)
+inline bool GenericAngle<T>::operator==(const T& y) const
 {
-    return angle = angle * scale;
+    return fabs(rads - y.toRadians()) <= FIXED_EPSILON;
 }
 
 template <typename T>
-inline GenericAngle<T>& operator/=(GenericAngle<T>& angle, double divisor)
+inline constexpr bool GenericAngle<T>::operator!=(const T& y) const
 {
-    return angle = angle / divisor;
-}
-
-template <typename T>
-inline constexpr bool operator<(const GenericAngle<T>& x, const GenericAngle<T>& y)
-{
-    return x.toRadians() < y.toRadians();
-}
-
-template <typename T>
-inline constexpr bool operator>(const GenericAngle<T>& x, const GenericAngle<T>& y)
-{
-    return x.toRadians() > y.toRadians();
-}
-
-template <typename T>
-inline constexpr bool operator<=(const GenericAngle<T>& x, const GenericAngle<T>& y)
-{
-    return x.toRadians() <= y.toRadians();
-}
-
-template <typename T>
-inline constexpr bool operator>=(const GenericAngle<T>& x, const GenericAngle<T>& y)
-{
-    return x.toRadians() >= y.toRadians();
-}
-
-template <typename T>
-inline bool operator==(const GenericAngle<T>& x, const GenericAngle<T>& y)
-{
-    GenericAngle<T> diff = x.clamp().minDiff(y.clamp());
-    return diff.toRadians() <= FIXED_EPSILON;
-}
-
-template <typename T>
-inline constexpr bool operator!=(const GenericAngle<T>& x, const GenericAngle<T>& y)
-{
-    return x.toRadians() != y.toRadians();
+    return !(*static_cast<T*>(this) == y);
 }
 
 template <typename T>
@@ -664,4 +469,10 @@ inline std::ostream& operator<<(std::ostream& os, const GenericAngle<T>& a)
 {
     os << a.toRadians() << "R";
     return os;
+}
+
+template <typename T>
+inline constexpr T operator*(double scale, const GenericAngle<T>& a)
+{
+    return T::fromRadians(scale * a.toRadians());
 }
