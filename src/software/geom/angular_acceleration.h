@@ -9,7 +9,4 @@ class AngularAcceleration : public GenericAngle<AngularAcceleration>
     explicit constexpr AngularAcceleration(double rad);
 };
 
-constexpr AngularAcceleration::AngularAcceleration(double rad)
-{
-    this->rads = rad;
-}
+constexpr AngularAcceleration::AngularAcceleration(double rad) : GenericAngle(rad) {}

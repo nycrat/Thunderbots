@@ -92,6 +92,8 @@ class Angle : public GenericAngle<Angle>
     explicit constexpr Angle(double rad);
 };
 
+inline constexpr Angle::Angle(double rad) : GenericAngle(rad) {}
+
 inline double Angle::sin() const
 {
     return std::sin(toRadians());
@@ -105,11 +107,6 @@ inline double Angle::cos() const
 inline double Angle::tan() const
 {
     return std::tan(toRadians());
-}
-
-inline constexpr Angle::Angle(double rad)
-{
-    this->rads = rad;
 }
 
 inline Angle Angle::asin(double x)

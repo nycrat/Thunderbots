@@ -9,7 +9,4 @@ class AngularVelocity : public GenericAngle<AngularVelocity>
     explicit constexpr AngularVelocity(double rad);
 };
 
-constexpr AngularVelocity::AngularVelocity(double rad)
-{
-    this->rads = rad;
-}
+constexpr AngularVelocity::AngularVelocity(double rad) : GenericAngle(rad) {}

@@ -289,8 +289,16 @@ class GenericAngle
     /**
      * The measurement in radians of this Angle.
      */
-    double rads;
+    double rads = 0.0;
+
+    constexpr GenericAngle() = default;
+    explicit constexpr GenericAngle(double rad);
 };
+
+template <typename T>
+inline constexpr GenericAngle<T>::GenericAngle(double rad) : rads(rad)
+{
+}
 
 template <typename T>
 inline constexpr T GenericAngle<T>::zero()
