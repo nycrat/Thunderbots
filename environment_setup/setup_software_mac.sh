@@ -95,6 +95,12 @@ print_status_msg "Done Granting Permissions to /opt/tbotspython"
 
 print_status_msg "Done Environment Configuration"
 
+print_status_msg "Set up ansible-lint"
+/opt/tbotspython/bin/ansible-galaxy collection install ansible.posix
+print_status_msg "Finished setting up ansible-lint"
+
+print_status_msg "Done Software Setup, please reboot for changes to take place"
+
 print_status_msg "Software Setup Complete"
 print_status_msg "Note: Some changes require a new terminal session to take effect"
 
