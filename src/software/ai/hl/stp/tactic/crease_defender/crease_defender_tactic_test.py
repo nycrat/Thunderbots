@@ -328,5 +328,6 @@ def test_crease_get_ball(
     )
 
 
+print("FROM TEST: ", __name__)
 if __name__ == "__main__":
     pytest_main(__file__)

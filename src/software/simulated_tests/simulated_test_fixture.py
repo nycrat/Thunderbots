@@ -405,6 +405,12 @@ def load_command_line_arguments(allow_unrecognized: bool = False):
     """
     parser = argparse.ArgumentParser(description="Run simulated pytests")
     parser.add_argument(
+        "--from_thunderscope",
+        action="store_true",
+        default=False,
+        help="launched by thunderscope",
+    )
+    parser.add_argument(
         "--enable_thunderscope", action="store_true", help="enable thunderscope"
     )
     parser.add_argument(
@@ -489,6 +495,7 @@ def pytest_main(file):
 
     # Run the test, -s disables all capturing at -vv increases verbosity
     # -W ignore::DeprecationWarning ignores deprecation warnings that spam the output
+    print(f"Running: {args.test_filter} {file}")
     sys.exit(
         pytest.main(
             ["-svv", "-W ignore::DeprecationWarning", "-k", args.test_filter, file]
@@ -543,7 +550,6 @@ def simulated_test_runner():
                 simulator_proto_unix_io,
                 blue_full_system_proto_unix_io,
                 yellow_full_system_proto_unix_io,
-                ProtoUnixIO(),
             )
             gamecontroller.setup_proto_unix_io(
                 blue_full_system_proto_unix_io=blue_full_system_proto_unix_io,

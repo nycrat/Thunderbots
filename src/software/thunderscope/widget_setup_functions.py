@@ -1,7 +1,7 @@
 import math
 import os
 
-from typing import Any, Optional
+from typing import Any, Optional, Callable
 
 from software.py_constants import *
 from proto.import_all_protos import *
@@ -65,6 +65,7 @@ def setup_gl_widget(
     replay_log: os.PathLike = None,
     frame_swap_counter: Optional[FrameTimeCounter] = None,
     send_sync_message: bool = False,
+    start: Callable[[], None] = lambda: None
 ) -> Field:
     """Setup the GLWidget with its constituent layers
 
@@ -90,6 +91,7 @@ def setup_gl_widget(
         frame_swap_counter=frame_swap_counter,
         player=player,
         sandbox_mode=sandbox_mode,
+        start=start
     )
 
     # Create layers

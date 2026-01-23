@@ -3,7 +3,7 @@ from software.thunderscope.widget_setup_functions import *
 from software.thunderscope.constants import ProtoUnixIOTypes
 from software.thunderscope.proto_unix_io import ProtoUnixIO
 from software.thunderscope.robot_communication import RobotCommunication
-from typing import Sequence
+from typing import Sequence, Callable
 from dataclasses import dataclass
 from software.thunderscope.thunderscope_types import (
     TScopeTab,
@@ -113,6 +113,7 @@ def configure_base_fullsystem(
     extra_widgets: list[TScopeWidget] = [],
     frame_swap_counter: FrameTimeCounter = None,
     refresh_counter: FrameTimeCounter = None,
+    start: Callable[[], None] = lambda: None,
 ) -> list:
     """Returns a list of widget data for a FullSystem tab
     along with any extra widgets passed in
@@ -143,6 +144,7 @@ def configure_base_fullsystem(
                 friendly_colour_yellow=friendly_colour_yellow,
                 visualization_buffer_size=visualization_buffer_size,
                 frame_swap_counter=frame_swap_counter,
+                start=start,
             ),
         ),
         TScopeWidget(
@@ -614,3 +616,45 @@ def configure_ai_or_diagnostics(
     config = TScopeConfig(proto_unix_io_map=proto_unix_io_map, tabs=tabs)
 
     return config, robot_view.widget
+
+
+def configure_embedded_test_runner(
+    start: Callable[[], None] = lambda: None,
+    visualization_buffer_size: int = 5,
+) -> TScopeConfig:
+    """Constructs the Thunderscope Config for simulated tests
+    A view with 2 FullSystem tabs (Blue and Yellow)
+    And 1 Gamecontroller tab
+
+    :param simulator_proto_unix_io: the proto unix io for the simulator
+    :param blue_full_system_proto_unix_io: the proto unix io for the blue fullsystem
+    :param yellow_full_system_proto_unix_io: the proto unix io for the yellow fullsystem
+    :param visualization_buffer_size: The size of the visualization buffer.
+            Increasing this will increase smoothness but will be less realtime.
+    :return: the Thunderscope Config for this view
+    """
+    proto_unix_io_map = {
+        ProtoUnixIOTypes.BLUE: ProtoUnixIO(),
+        ProtoUnixIOTypes.YELLOW: ProtoUnixIO(),
+        ProtoUnixIOTypes.SIM: ProtoUnixIO(),
+    }
+
+    # Must be called before widgets are initialized below
+    initialize_application()
+
+    return TScopeConfig(
+        proto_unix_io_map=proto_unix_io_map,
+        tabs=[
+            TScopeTab(
+                name="Blue FullSystem",
+                widgets=configure_base_fullsystem(
+                    full_system_proto_unix_io=proto_unix_io_map[ProtoUnixIOTypes.BLUE],
+                    sim_proto_unix_io=proto_unix_io_map[ProtoUnixIOTypes.SIM],
+                    friendly_colour_yellow=False,
+                    visualization_buffer_size=visualization_buffer_size,
+                    extra_widgets=[],
+                    start=start,
+                ),
+            ),
+        ],
+    )

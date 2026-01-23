@@ -165,6 +165,7 @@ gdb --args bazel-bin/{simulator_command}
                 self.simulator_runtime_dir, *arg
             )
 
-        autoref_proto_unix_io.attach_unix_receiver(
-            self.simulator_runtime_dir, SSL_WRAPPER_PATH, SSL_WrapperPacket
-        )
+        if autoref_proto_unix_io:
+            autoref_proto_unix_io.attach_unix_receiver(
+                self.simulator_runtime_dir, SSL_WRAPPER_PATH, SSL_WrapperPacket
+            )

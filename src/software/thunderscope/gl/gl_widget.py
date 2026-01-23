@@ -7,7 +7,7 @@ from pyqtgraph.Qt.QtWidgets import *
 from pyqtgraph.opengl import *
 
 import numpy as np
-from typing import Optional
+from typing import Optional, Callable
 from software.thunderscope.common.frametime_counter import FrameTimeCounter
 
 from software.thunderscope.constants import *
@@ -45,6 +45,7 @@ class GLWidget(QWidget):
         frame_swap_counter: Optional[FrameTimeCounter] = None,
         player: Optional[ProtoPlayer] = None,
         sandbox_mode: bool = False,
+        start: Callable[[], None] = lambda: None
     ) -> None:
         """Initialize the GLWidget
 
@@ -116,7 +117,7 @@ class GLWidget(QWidget):
             friendly_color_yellow=friendly_color_yellow,
         )
 
-        self.simulated_test_toolbar = GLSimulatedTestToolbar(parent=self.gl_view_widget)
+        self.simulated_test_toolbar = GLSimulatedTestToolbar(parent=self.gl_view_widget, start=start)
 
         self.__add_toolbar_select(self.gamecontroller_toolbar, "Gamecontroller")
         self.__add_toolbar_select(self.simulated_test_toolbar, "Tests")
