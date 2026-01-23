@@ -98,7 +98,7 @@ class GLGamecontrollerToolbar(GLToolbar):
             display_text="Open GC",
         )
 
-        self.runtime_installer_button = self.__setup_icon_button(
+        self.runtime_installer_button = self.setup_icon_button(
             qta.icon("mdi6.download"),
             "Opens a runtime installer modal",
             self.__open_runtime_installer_dialog,
@@ -120,7 +120,7 @@ class GLGamecontrollerToolbar(GLToolbar):
         self.add_separator(self.layout())
         self.layout().addWidget(self.gc_browser_button)
         self.layout().addStretch()
-        self.__add_separator(self.layout())
+        self.add_separator(self.layout())
         self.layout().addWidget(self.runtime_installer_button)
 
     @override
