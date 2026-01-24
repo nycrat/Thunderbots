@@ -45,7 +45,7 @@ class GLWidget(QWidget):
         frame_swap_counter: Optional[FrameTimeCounter] = None,
         player: Optional[ProtoPlayer] = None,
         sandbox_mode: bool = False,
-        start: Callable[[], None] = lambda: None
+        start: Callable[[], None] = lambda: None,
     ) -> None:
         """Initialize the GLWidget
 
@@ -117,7 +117,9 @@ class GLWidget(QWidget):
             friendly_color_yellow=friendly_color_yellow,
         )
 
-        self.simulated_test_toolbar = GLSimulatedTestToolbar(parent=self.gl_view_widget, start=start)
+        self.simulated_test_toolbar = GLSimulatedTestToolbar(
+            parent=self.gl_view_widget, start=start
+        )
 
         self.__add_toolbar_select(self.gamecontroller_toolbar, "Gamecontroller")
         self.__add_toolbar_select(self.simulated_test_toolbar, "Tests")

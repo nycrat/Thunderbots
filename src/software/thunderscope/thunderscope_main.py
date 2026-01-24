@@ -412,6 +412,7 @@ if __name__ == "__main__":
     #
     # Don't start any binaries and just replay a log.
     elif args.embedded_tests:
+
         def __start() -> None:
             def __ticker(tick_rate_ms: int) -> None:
                 """Setup the world and tick simulation forever
@@ -434,7 +435,9 @@ if __name__ == "__main__":
                     )
                 else:
                     realtime_sim_ticker(
-                        tick_rate_ms, tscope.proto_unix_io_map[ProtoUnixIOTypes.SIM], tscope
+                        tick_rate_ms,
+                        tscope.proto_unix_io_map[ProtoUnixIOTypes.SIM],
+                        tscope,
                     )
 
             # Fetch the AI runtime/backends
@@ -470,7 +473,9 @@ if __name__ == "__main__":
             ) as gamecontroller:
                 tscope.register_refresh_function(gamecontroller.refresh)
 
-                blue_fs.setup_proto_unix_io(tscope.proto_unix_io_map[ProtoUnixIOTypes.BLUE])
+                blue_fs.setup_proto_unix_io(
+                    tscope.proto_unix_io_map[ProtoUnixIOTypes.BLUE]
+                )
                 yellow_fs.setup_proto_unix_io(
                     tscope.proto_unix_io_map[ProtoUnixIOTypes.YELLOW]
                 )
@@ -486,7 +491,9 @@ if __name__ == "__main__":
                     yellow_full_system_proto_unix_io=tscope.proto_unix_io_map[
                         ProtoUnixIOTypes.YELLOW
                     ],
-                    simulator_proto_unix_io=tscope.proto_unix_io_map[ProtoUnixIOTypes.SIM],
+                    simulator_proto_unix_io=tscope.proto_unix_io_map[
+                        ProtoUnixIOTypes.SIM
+                    ],
                 )
 
                 # Start the simulator

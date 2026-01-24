@@ -65,7 +65,7 @@ def setup_gl_widget(
     replay_log: os.PathLike = None,
     frame_swap_counter: Optional[FrameTimeCounter] = None,
     send_sync_message: bool = False,
-    start: Callable[[], None] = lambda: None
+    start: Callable[[], None] = lambda: None,
 ) -> Field:
     """Setup the GLWidget with its constituent layers
 
@@ -91,7 +91,7 @@ def setup_gl_widget(
         frame_swap_counter=frame_swap_counter,
         player=player,
         sandbox_mode=sandbox_mode,
-        start=start
+        start=start,
     )
 
     # Create layers
