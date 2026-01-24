@@ -521,76 +521,79 @@ def simulated_test_runner():
 
     test_name = current_test.split("-")[0]
 
-    # Launch all binaries
-    with Simulator(
-        f"{args.simulator_runtime_dir}/test/{test_name}",
-        args.debug_simulator,
-        args.enable_realism,
-    ) as simulator, FullSystem(
-        "software/unix_full_system",
-        f"{args.blue_full_system_runtime_dir}/test/{test_name}",
-        args.debug_blue_full_system,
-        False,
-        should_restart_on_crash=False,
-        running_in_realtime=args.enable_thunderscope,
-    ) as blue_fs, FullSystem(
-        "software/unix_full_system",
-        f"{args.yellow_full_system_runtime_dir}/test/{test_name}",
-        args.debug_yellow_full_system,
-        True,
-        should_restart_on_crash=False,
-        running_in_realtime=args.enable_thunderscope,
-    ) as yellow_fs:
-        with Gamecontroller(
-            suppress_logs=(not args.show_gamecontroller_logs)
-        ) as gamecontroller:
-            blue_fs.setup_proto_unix_io(blue_full_system_proto_unix_io)
-            yellow_fs.setup_proto_unix_io(yellow_full_system_proto_unix_io)
-            simulator.setup_proto_unix_io(
-                simulator_proto_unix_io,
-                blue_full_system_proto_unix_io,
-                yellow_full_system_proto_unix_io,
-            )
-            gamecontroller.setup_proto_unix_io(
-                blue_full_system_proto_unix_io=blue_full_system_proto_unix_io,
-                yellow_full_system_proto_unix_io=yellow_full_system_proto_unix_io,
-                simulator_proto_unix_io=simulator_proto_unix_io,
-            )
-
-            # If we want to run thunderscope, inject the proto unix ios
-            # and start the test
-            if args.enable_thunderscope:
-                tscope = Thunderscope(
-                    configure_simulated_test_view(
-                        blue_full_system_proto_unix_io=blue_full_system_proto_unix_io,
-                        yellow_full_system_proto_unix_io=yellow_full_system_proto_unix_io,
-                        simulator_proto_unix_io=simulator_proto_unix_io,
-                    ),
-                    layout_path=args.layout,
-                )
-
-            time.sleep(LAUNCH_DELAY_S)
-
-            runner = None
-
-            # Initialise the right runner based on which testing mode is selected
-            if aggregate:
-                runner = AggregateTestRunner(
-                    current_test,
-                    tscope,
+    if args.from_thunderscope:
+        print("woah")
+    else:
+        # Launch all binaries
+        with Simulator(
+            f"{args.simulator_runtime_dir}/test/{test_name}",
+            args.debug_simulator,
+            args.enable_realism,
+        ) as simulator, FullSystem(
+            "software/unix_full_system",
+            f"{args.blue_full_system_runtime_dir}/test/{test_name}",
+            args.debug_blue_full_system,
+            False,
+            should_restart_on_crash=False,
+            running_in_realtime=args.enable_thunderscope,
+        ) as blue_fs, FullSystem(
+            "software/unix_full_system",
+            f"{args.yellow_full_system_runtime_dir}/test/{test_name}",
+            args.debug_yellow_full_system,
+            True,
+            should_restart_on_crash=False,
+            running_in_realtime=args.enable_thunderscope,
+        ) as yellow_fs:
+            with Gamecontroller(
+                suppress_logs=(not args.show_gamecontroller_logs)
+            ) as gamecontroller:
+                blue_fs.setup_proto_unix_io(blue_full_system_proto_unix_io)
+                yellow_fs.setup_proto_unix_io(yellow_full_system_proto_unix_io)
+                simulator.setup_proto_unix_io(
                     simulator_proto_unix_io,
                     blue_full_system_proto_unix_io,
                     yellow_full_system_proto_unix_io,
-                    gamecontroller,
                 )
-            else:
-                runner = InvariantTestRunner(
-                    current_test,
-                    tscope,
-                    simulator_proto_unix_io,
-                    blue_full_system_proto_unix_io,
-                    yellow_full_system_proto_unix_io,
-                    gamecontroller,
+                gamecontroller.setup_proto_unix_io(
+                    blue_full_system_proto_unix_io=blue_full_system_proto_unix_io,
+                    yellow_full_system_proto_unix_io=yellow_full_system_proto_unix_io,
+                    simulator_proto_unix_io=simulator_proto_unix_io,
                 )
 
-            yield runner
+                # If we want to run thunderscope, inject the proto unix ios
+                # and start the test
+                if args.enable_thunderscope:
+                    tscope = Thunderscope(
+                        configure_simulated_test_view(
+                            blue_full_system_proto_unix_io=blue_full_system_proto_unix_io,
+                            yellow_full_system_proto_unix_io=yellow_full_system_proto_unix_io,
+                            simulator_proto_unix_io=simulator_proto_unix_io,
+                        ),
+                        layout_path=args.layout,
+                    )
+
+                time.sleep(LAUNCH_DELAY_S)
+
+                runner = None
+
+                # Initialise the right runner based on which testing mode is selected
+                if aggregate:
+                    runner = AggregateTestRunner(
+                        current_test,
+                        tscope,
+                        simulator_proto_unix_io,
+                        blue_full_system_proto_unix_io,
+                        yellow_full_system_proto_unix_io,
+                        gamecontroller,
+                    )
+                else:
+                    runner = InvariantTestRunner(
+                        current_test,
+                        tscope,
+                        simulator_proto_unix_io,
+                        blue_full_system_proto_unix_io,
+                        yellow_full_system_proto_unix_io,
+                        gamecontroller,
+                    )
+
+                yield runner

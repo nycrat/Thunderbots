@@ -1,9 +1,11 @@
-from pyqtgraph.Qt import QtWidgets
-from software.thunderscope.gl.widgets.gl_toolbar import GLToolbar
+import os
+from typing import Callable, override
+
+import GLTestSelectorDialog
 import qtawesome as qta
-from typing import override, Callable
-import subprocess
-import threading
+from pyqtgraph.Qt import QtWidgets
+
+from software.thunderscope.gl.widgets.gl_toolbar import GLToolbar
 
 
 class GLSimulatedTestToolbar(GLToolbar):
@@ -34,23 +36,31 @@ class GLSimulatedTestToolbar(GLToolbar):
         self.move(0, self.parentWidget().geometry().bottom() - self.height())
 
     def __run_test(self):
-        print("RUN TEST")
-        # self.start()
-        bazel_target = (
-            "//software/ai/hl/stp/tactic/crease_defender:crease_defender_tactic_test"
-        )
+        if not hasattr(self, "test_selector_dialog"):
+            self.test_selector_dialog = GLTestSelectorDialog(self.parent(), ["woah", "other"])
+        self.test_selector_dialog.show()
 
-        def run_bazel_test(target):
-            proc = subprocess.Popen(
-                ["bazel", "test", target, "--", "--from_thunderscope"],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True,
-                cwd="/Users/avah/2_school/team/thunderbots/src",
-            )
-            for line in proc.stdout:
-                print(line, end="")
-            proc.wait()
-
-        thread = threading.Thread(target=run_bazel_test, args=(bazel_target,))
-        thread.start()
+        # cwd = os.getenv("WORKSPACE_DIR")
+        # def print_tests(tests):
+        #     proc = subprocess.Popen(
+        #         ["bazel", "query", "kind(py_test, //...)"],
+        #         stdout=subprocess.PIPE,
+        #         stderr=subprocess.STDOUT,
+        #         text=True,
+        #         cwd=cwd,
+        #     )
+        #
+        #     for line in proc.stdout:
+        #         if line.startswith("//"):
+        #             tests.append(line.strip())
+        #
+        # tests = []
+        #
+        # thread = threading.Thread(
+        #         target=print_tests,
+        #         args=(tests,))
+        #
+        # thread.start()
+        # thread.join()
+        #
+        # print(tests)

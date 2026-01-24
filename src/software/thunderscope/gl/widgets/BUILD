@@ -58,8 +58,18 @@ py_library(
     srcs = ["gl_simulated_test_toolbar.py"],
     deps = [
         ":gl_toolbar",
+        ":gl_test_selector_dialog",
         "//software/thunderscope/common:common_widgets",
         requirement("pyqtgraph"),
         requirement("qtawesome"),
+    ],
+)
+
+py_library(
+    name = "gl_test_selector_dialog",
+    srcs = ["gl_test_selector_dialog.py"],
+    deps = [
+        requirement("pyqtgraph"),
+        "//software/ai/hl/stp/tactic/avah:avah_test"
     ],
 )

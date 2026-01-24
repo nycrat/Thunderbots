@@ -82,5 +82,9 @@ def test_avah_function(
     )
 
 
+def other_function():
+    print("woah")
+
+
 if __name__ == "__main__":
     pytest_main(__file__)
