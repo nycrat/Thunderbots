@@ -5,12 +5,12 @@ from proto.play_pb2 import Play, PlayName
 
 from software.simulated_tests.or_validation import OrValidation
 
-from software.simulated_tests.ball_moves_from_rest import (
+from software.simulated_tests.pytest_validations.ball_moves_from_rest import (
     BallEventuallyMovesFromRest,
 )
-from software.simulated_tests.friendly_team_scored import *
-from software.simulated_tests.ball_enters_region import *
-from software.simulated_tests.robot_enters_region import (
+from software.simulated_tests.pytest_validations.friendly_team_scored import *
+from software.simulated_tests.pytest_validations.ball_enters_region import *
+from software.simulated_tests.pytest_validations.robot_enters_region import (
     RobotEventuallyEntersRegion,
     RobotNeverEntersRegion,
 )

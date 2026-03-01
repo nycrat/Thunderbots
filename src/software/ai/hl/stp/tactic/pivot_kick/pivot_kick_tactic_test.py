@@ -2,8 +2,8 @@ import pytest
 import math
 
 import software.python_bindings as tbots_cpp
-from software.simulated_tests.robot_enters_region import *
-from software.simulated_tests.ball_enters_region import *
+from software.simulated_tests.pytest_validations.robot_enters_region import *
+from software.simulated_tests.pytest_validations.ball_enters_region import *
 from software.simulated_tests.simulated_test_fixture import (
     pytest_main,
 )
@@ -14,7 +14,6 @@ from proto.message_translation.tbots_protobuf import create_world_state
     "ball_offset_from_robot, angle_to_kick_at",
     [
         # TODO (#2859): Flaky, the robot does not dribble far enough into the ball
-
         # place the ball directly to the left of the robot
         (tbots_cpp.Vector(0, 0.5), 0),
         # place the ball directly to the right of the robot
