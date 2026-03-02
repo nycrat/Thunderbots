@@ -11,7 +11,7 @@ from proto.ssl_gc_common_pb2 import Team
 from software.simulated_tests.simulated_test_fixture import (
     pytest_main,
 )
-from software.simulated_tests.or_validation import OrValidation
+from software.simulated_tests.pytest_validations.or_validation import OrValidation
 
 
 @pytest.mark.parametrize("is_friendly_test", [True, False])

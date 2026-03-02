@@ -3,7 +3,7 @@ import pytest
 import software.python_bindings as tbots_cpp
 from proto.play_pb2 import Play, PlayName
 
-from software.simulated_tests.or_validation import OrValidation
+from software.simulated_tests.pytest_validations.or_validation import OrValidation
 
 from software.simulated_tests.pytest_validations.ball_moves_from_rest import (
     BallEventuallyMovesFromRest,
