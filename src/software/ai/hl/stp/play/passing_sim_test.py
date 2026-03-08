@@ -156,7 +156,7 @@ def setup_pass_and_robots(
             tbots_cpp.Vector(0.0, 0.0),
             tbots_cpp.Point(-1.0, 0.0),
             [tbots_cpp.Point(1.0, 0.0)],
-            [0, math.pi],
+            [tbots_cpp.Angle.zero(), tbots_cpp.Angle.half()],
             [],
         ),
         # pass between 2 robots on opposite ends of the field
@@ -165,7 +165,7 @@ def setup_pass_and_robots(
             tbots_cpp.Vector(0.0, 0.0),
             tbots_cpp.Point(-3.5, 0.0),
             [tbots_cpp.Point(3.5, 0.0)],
-            [0, math.pi],
+            [tbots_cpp.Angle.zero(), tbots_cpp.Angle.half()],
             [],
         ),
         # TODO: Make Interception Better
@@ -176,7 +176,7 @@ def setup_pass_and_robots(
             tbots_cpp.Vector(0.0, 0.0),
             tbots_cpp.Point(0.0, -1.0),
             [tbots_cpp.Point(0.0, 3.0)],
-            [0, math.pi],
+            [tbots_cpp.Angle.zero(), tbots_cpp.Angle.half()],
             [],
         ),
         # pass between 2 robots on opposite ends of the field's diagonal
@@ -185,7 +185,7 @@ def setup_pass_and_robots(
             tbots_cpp.Vector(0.0, 0.0),
             tbots_cpp.Point(-3.5, 2.5),
             [tbots_cpp.Point(3.5, -2.5)],
-            [0, math.pi],
+            [tbots_cpp.Angle.zero(), tbots_cpp.Angle.half()],
             [],
         ),
         # straight pass with an enemy in between the 2 robots
@@ -194,7 +194,7 @@ def setup_pass_and_robots(
             tbots_cpp.Vector(0.0, 0.0),
             tbots_cpp.Point(-1.0, 0.0),
             [tbots_cpp.Point(1.5, 0.0)],
-            [0, math.pi],
+            [tbots_cpp.Angle.zero(), tbots_cpp.Angle.half()],
             [tbots_cpp.Point(0.5, 0.0)],
         ),
         # pass with a sparse wall of enemy robots in between the 2 robots
@@ -203,7 +203,7 @@ def setup_pass_and_robots(
             tbots_cpp.Vector(0.0, 0.0),
             tbots_cpp.Point(-2.0, 0.0),
             [tbots_cpp.Point(1.0, 0.0)],
-            [0, math.pi],
+            [tbots_cpp.Angle.zero(), tbots_cpp.Angle.half()],
             [
                 tbots_cpp.Point(0.5, 2.0),
                 tbots_cpp.Point(0.5, 1.0),
@@ -275,7 +275,7 @@ def test_passing_receive_speed(
             tbots_cpp.Vector(0.0, 0.0),
             tbots_cpp.Point(2.0, -2.0),
             [tbots_cpp.Point(-2.5, 2.0)],
-            [math.pi, 0],
+            [tbots_cpp.Angle.half(), tbots_cpp.Angle.zero()],
             [],
         ),
         (
@@ -283,7 +283,7 @@ def test_passing_receive_speed(
             tbots_cpp.Vector(0.0, 0.0),
             tbots_cpp.Point(0.5, 0),
             [tbots_cpp.Point(-0.5, 0)],
-            [math.pi, 0],
+            [tbots_cpp.Angle.half(), tbots_cpp.Angle.zero()],
             [],
         ),
         (
@@ -291,7 +291,7 @@ def test_passing_receive_speed(
             tbots_cpp.Vector(0.0, 0.0),
             tbots_cpp.Point(0.6, 0),
             [tbots_cpp.Point(-0.6, 0)],
-            [math.pi, 0],
+            [tbots_cpp.Angle.half(), tbots_cpp.Angle.zero()],
             [],
         ),
         (
@@ -304,7 +304,7 @@ def test_passing_receive_speed(
                 tbots_cpp.Point(1, -1),
                 tbots_cpp.Point(2, 0),
             ],
-            [math.pi, 0],
+            [tbots_cpp.Angle.half(), tbots_cpp.Angle.zero()],
             [],
         ),
         (
@@ -312,7 +312,7 @@ def test_passing_receive_speed(
             tbots_cpp.Vector(0.0, 0.0),
             tbots_cpp.Point(1, 0),
             [tbots_cpp.Point(2.5, 2.5), tbots_cpp.Point(-1, 0)],
-            [math.pi, 0],
+            [tbots_cpp.Angle.half(), tbots_cpp.Angle.zero()],
             [],
         ),
         (
@@ -320,7 +320,7 @@ def test_passing_receive_speed(
             tbots_cpp.Vector(0.0, 0.0),
             tbots_cpp.Point(0.5, 0),
             [tbots_cpp.Point(-1, 0)],
-            [math.pi, 0],
+            [tbots_cpp.Angle.half(), tbots_cpp.Angle.zero()],
             [
                 tbots_cpp.Point(0.5, 0.5),
                 tbots_cpp.Point(0.5, -0.5),

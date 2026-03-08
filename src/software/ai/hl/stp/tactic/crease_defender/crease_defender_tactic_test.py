@@ -222,6 +222,7 @@ def test_crease_positioning(
                 ball_velocity=ball_initial_velocity,
             )
         )
+
         simulated_test_runner.set_tactics(
             blue_tactics={
                 0: CreaseDefenderTactic(
@@ -331,6 +332,7 @@ def test_crease_autochip(
                 ball_velocity=ball_initial_velocity,
             )
         )
+
         simulated_test_runner.set_tactics(
             blue_tactics={
                 0: CreaseDefenderTactic(
