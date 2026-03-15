@@ -19,7 +19,6 @@ from software.simulated_tests.validation.robot_enters_region import (
     RobotEventuallyEntersRegion,
     RobotNeverEntersRegion,
 )
-from proto.import_all_protos import *
 from software.simulated_tests.simulated_test_fixture import (
     pytest_main,
 )
@@ -65,20 +64,16 @@ def test_crease_positioning(
                 ball_velocity=ball_initial_velocity,
             )
         )
-
-        params = AssignedTacticPlayControlParams()
-        params.assigned_tactics[0].crease_defender.CopyFrom(
-            CreaseDefenderTactic(
-                enemy_threat_origin=tbots_cpp.createPointProto(ball_initial_pos),
-                crease_defender_alignment=CreaseDefenderAlignment.CENTRE,
-                max_allowed_speed_mode=MaxAllowedSpeedMode.PHYSICAL_LIMIT,
-                ball_steal_mode=BallStealMode.STEAL,
-            )
+        simulated_test_runner.set_tactics(
+            blue_tactics={
+                0: CreaseDefenderTactic(
+                    enemy_threat_origin=tbots_cpp.createPointProto(ball_initial_pos),
+                    crease_defender_alignment=CreaseDefenderAlignment.CENTRE,
+                    max_allowed_speed_mode=MaxAllowedSpeedMode.PHYSICAL_LIMIT,
+                    ball_steal_mode=BallStealMode.STEAL,
+                )
+            }
         )
-        simulated_test_runner.set_tactics(params, is_friendly=True)
-
-        params = AssignedTacticPlayControlParams()
-        simulated_test_runner.set_tactics(params, is_friendly=False)
 
     always_validation_sequence_set = [
         [
@@ -178,20 +173,16 @@ def test_crease_autochip(
                 ball_velocity=ball_initial_velocity,
             )
         )
-
-        params = AssignedTacticPlayControlParams()
-        params.assigned_tactics[0].crease_defender.CopyFrom(
-            CreaseDefenderTactic(
-                enemy_threat_origin=tbots_cpp.createPointProto(ball_initial_pos),
-                crease_defender_alignment=CreaseDefenderAlignment.CENTRE,
-                max_allowed_speed_mode=MaxAllowedSpeedMode.PHYSICAL_LIMIT,
-                ball_steal_mode=BallStealMode.STEAL,
-            )
+        simulated_test_runner.set_tactics(
+            blue_tactics={
+                0: CreaseDefenderTactic(
+                    enemy_threat_origin=tbots_cpp.createPointProto(ball_initial_pos),
+                    crease_defender_alignment=CreaseDefenderAlignment.CENTRE,
+                    max_allowed_speed_mode=MaxAllowedSpeedMode.PHYSICAL_LIMIT,
+                    ball_steal_mode=BallStealMode.STEAL,
+                )
+            }
         )
-        simulated_test_runner.set_tactics(params, is_friendly=True)
-
-        params = AssignedTacticPlayControlParams()
-        simulated_test_runner.set_tactics(params, is_friendly=False)
 
     always_validation_sequence_set = [
         [
@@ -254,19 +245,16 @@ def test_crease_get_ball(
             )
         )
 
-        params = AssignedTacticPlayControlParams()
-        params.assigned_tactics[0].crease_defender.CopyFrom(
-            CreaseDefenderTactic(
-                enemy_threat_origin=tbots_cpp.createPointProto(ball_initial_pos),
-                crease_defender_alignment=CreaseDefenderAlignment.CENTRE,
-                max_allowed_speed_mode=MaxAllowedSpeedMode.PHYSICAL_LIMIT,
-                ball_steal_mode=BallStealMode.STEAL,
-            )
+        simulated_test_runner.set_tactics(
+            blue_tactics={
+                0: CreaseDefenderTactic(
+                    enemy_threat_origin=tbots_cpp.createPointProto(ball_initial_pos),
+                    crease_defender_alignment=CreaseDefenderAlignment.CENTRE,
+                    max_allowed_speed_mode=MaxAllowedSpeedMode.PHYSICAL_LIMIT,
+                    ball_steal_mode=BallStealMode.STEAL,
+                )
+            }
         )
-        simulated_test_runner.set_tactics(params, is_friendly=True)
-
-        params = AssignedTacticPlayControlParams()
-        simulated_test_runner.set_tactics(params, is_friendly=False)
 
     always_validation_sequence_set = [
         [
@@ -295,7 +283,6 @@ def test_crease_get_ball(
         inv_always_validation_sequence_set=always_validation_sequence_set,
         ag_eventually_validation_sequence_set=eventually_validation_sequence_set,
         ag_always_validation_sequence_set=always_validation_sequence_set,
-        test_timeout_s=3,
     )
 
 
