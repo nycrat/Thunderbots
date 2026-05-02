@@ -14,6 +14,7 @@ COLUMNS = {
     "robot_attrs": ["x", "y", "orientation", "vx", "vy", "angular_velocity"],
     "event_type": ["event_type"],
     "timestamp": ["timestamp"],
+    "teams": ["from", "to"],
 }
 
 NUM_ROBOTS_PER_TEAM = DIV_B_NUM_ROBOTS
@@ -27,8 +28,9 @@ def load_raw_data(path: str) -> pd.DataFrame:
              and robot state (6 robots per team, zero-indexed).
     """
     cols = (
-        COLUMNS["event_type"]
-        + COLUMNS["timestamp"]
+        COLUMNS["timestamp"]
+        + COLUMNS["event_type"]
+        + COLUMNS["teams"]
         + COLUMNS["ball"]
         + [f"friendly_{i // 6}_{COLUMNS['robot_attrs'][i % 6]}" for i in range(36)]
         + [f"enemy_{i // 6}_{COLUMNS['robot_attrs'][i % 6]}" for i in range(36)]
