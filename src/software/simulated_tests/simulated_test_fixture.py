@@ -429,7 +429,7 @@ def get_runtime_dir():
 
     :return: The path to the runtime directory.
     """
-    test_tmpdir = os.environ.get("TEST_TMPDIR")
+    test_tmpdir = os.environ.get("TEST_UNDECLARED_OUTPUTS_DIR")
     if not test_tmpdir:
         return "/tmp/tbots"
     import uuid
