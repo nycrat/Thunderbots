@@ -28,6 +28,13 @@ class UnixSimulatorBackend : public Backend, public Subject<TbotsProto::Thunderb
                          const std::shared_ptr<ProtoLogger>& proto_logger);
 
     /**
+     * Cleanly shuts down all unix listeners and senders to ensure socket files
+     * are removed from the filesystem. Must be called before destruction to
+     * break shared_ptr observer cycles that prevent the destructor from running.
+     */
+    void shutdown();
+
+    /**
      * Get the timestamp (in seconds) of the last World received
      */
     double getLastWorldTimeSec();

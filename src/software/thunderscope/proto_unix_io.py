@@ -1,3 +1,4 @@
+import atexit
 from threading import Thread
 import queue
 
@@ -60,6 +61,7 @@ class ProtoUnixIO:
         self.unix_listeners = {}
         self.send_proto_to_observer_threads = {}
         self.running = True
+        atexit.register(self.force_close)
 
     def __send_proto_to_observers(self, receive_buffer: ThreadSafeBuffer) -> None:
         """Given a ThreadSafeBuffer (receive_buffer) consume it and
@@ -180,8 +182,10 @@ class ProtoUnixIO:
 
     def force_close(self) -> None:
         """Closes all unix senders and receivers"""
+        if not self.running:
+            return
         self.running = False
-        for sender in self.unix_senders.items():
-            sender[1].force_stop()
-        for listener in self.unix_listeners.items():
-            listener[1].force_stop()
+        for _, sender in self.unix_senders.items():
+            sender.force_stop()
+        for _, listener in self.unix_listeners.items():
+            listener.force_stop()

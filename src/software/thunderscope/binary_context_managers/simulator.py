@@ -104,8 +104,12 @@ gdb --args bazel-bin/{simulator_command}
         :param traceback: The traceback of the exception
         """
         if self.er_force_simulator_proc:
-            self.er_force_simulator_proc.kill()
-            self.er_force_simulator_proc.wait()
+            self.er_force_simulator_proc.terminate()
+            try:
+                self.er_force_simulator_proc.wait(timeout=5)
+            except:
+                self.er_force_simulator_proc.kill()
+                self.er_force_simulator_proc.wait()
 
     def setup_proto_unix_io(
         self,

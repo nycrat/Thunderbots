@@ -1,10 +1,12 @@
 #include <Tracy.hpp>
 #include <boost/program_options.hpp>
 #include <chrono>
+#include <csignal>
 #include <filesystem>
 #include <iostream>
 #include <numeric>
 #include <optional>
+#include <thread>
 
 #include "proto/message_translation/ssl_wrapper.h"
 #include "proto/parameters.pb.h"
@@ -26,6 +28,9 @@
 // cleanup callback.
 std::shared_ptr<ProtoLogger> proto_logger;
 
+// Signal flag to allow clean shutdown with stack unwinding
+volatile sig_atomic_t shutdown_requested = 0;
+
 /**
  * Signal handler which attempts to cleanly shutdown the program.
  *
@@ -42,8 +47,7 @@ void cleanup(int signal_num)
         proto_logger->flushAndStopLogging();
     }
 
-    // Program has cleaned up core resources, so we can safely exit
-    exit(0);
+    shutdown_requested = 1;
 }
 
 /**
@@ -205,8 +209,16 @@ int main(int argc, char** argv)
         std::signal(SIGFPE, cleanup);
         std::signal(SIGILL, cleanup);
 
-        // This blocks forever without using the CPU
-        std::promise<void>().get_future().wait();
+        // Blocks until a signal is received, then returns from main() to
+        // trigger stack unwinding and destructor calls for clean shutdown
+        while (!shutdown_requested)
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
+
+        // Shut down the backend's listeners before main() returns to break
+        // circular shared_ptr references that prevent the destructor from running
+        backend->shutdown();
     }
 
     return 0;

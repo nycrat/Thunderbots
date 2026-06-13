@@ -1,4 +1,7 @@
 #include <boost/program_options.hpp>
+#include <chrono>
+#include <csignal>
+#include <thread>
 
 #include "extlibs/er_force_sim/src/protobuf/world.pb.h"
 #include "proto/message_translation/tbots_protobuf.h"
@@ -10,6 +13,13 @@
 #include "software/networking/unix/threaded_proto_unix_listener.hpp"
 #include "software/networking/unix/threaded_proto_unix_sender.hpp"
 #include "software/simulation/er_force_simulator.h"
+
+volatile sig_atomic_t shutdown_requested = 0;
+
+extern "C" void handle_signal(int /*signal_num*/)
+{
+    shutdown_requested = 1;
+}
 
 int main(int argc, char** argv)
 {
@@ -225,7 +235,15 @@ int main(int argc, char** argv)
                 simulator_state_output.sendProto(er_force_sim->getSimulatorState());
             });
 
-        // This blocks forever without using the CPU
-        std::promise<void>().get_future().wait();
+        // Register signal handlers for clean shutdown
+        std::signal(SIGTERM, handle_signal);
+        std::signal(SIGINT, handle_signal);
+
+        // Blocks until a signal is received, then returns from main() to
+        // trigger stack unwinding and destructor calls for clean shutdown
+        while (!shutdown_requested)
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
     }
 }

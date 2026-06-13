@@ -58,6 +58,10 @@ class ThreadedUnixListener:
         """Stop handling requests"""
         self.stop = True
         self.server.server_close()
+        try:
+            os.remove(self.unix_path)
+        except OSError:
+            pass
 
     def start(self):
         """Start handling requests"""

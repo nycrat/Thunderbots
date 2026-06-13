@@ -108,6 +108,26 @@ void UnixSimulatorBackend::onValueReceived(World world)
     last_world_time_sec.store(world.getMostRecentTimestamp().toSeconds());
 }
 
+void UnixSimulatorBackend::shutdown()
+{
+    // Destroy all listeners to trigger ProtoUnixListener destructors
+    // which remove socket files via ::unlink
+    robot_status_input.reset();
+    ssl_wrapper_input.reset();
+    ssl_referee_input.reset();
+    sensor_proto_input.reset();
+    dynamic_parameter_update_request_listener.reset();
+    validation_proto_set_listener.reset();
+    robot_log_listener.reset();
+    robot_crash_listener.reset();
+    replay_bookmark_listener.reset();
+    external_obstacles_list_.reset();
+
+    world_output.reset();
+    primitive_output.reset();
+    dynamic_parameter_update_respone_sender.reset();
+}
+
 double UnixSimulatorBackend::getLastWorldTimeSec()
 {
     return last_world_time_sec.load();

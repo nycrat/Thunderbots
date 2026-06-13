@@ -1,6 +1,7 @@
 #pragma once
 
 #include <boost/asio.hpp>
+#include <cerrno>
 #include <string>
 
 #include "software/constants.h"
@@ -145,15 +146,7 @@ ProtoUnixListener<ReceiveProtoT>::~ProtoUnixListener()
     running_ = false;
 
     boost::system::error_code error_code;
-    socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_both, error_code);
-    if (error_code)
-    {
-        LOG(WARNING)
-            << "An unknown network error occurred when attempting to shutdown Unix socket for "
-            << TYPENAME(ReceiveProtoT)
-            << ". The boost system error is: " << error_code.message() << std::endl;
-    }
-
+    // shutdown() is a TCP operation and is not applicable to UNIX datagram sockets
     socket_.close(error_code);
     if (error_code)
     {
@@ -161,5 +154,14 @@ ProtoUnixListener<ReceiveProtoT>::~ProtoUnixListener()
             << "An unknown network error occurred when attempting to close Unix socket for "
             << TYPENAME(ReceiveProtoT)
             << ". The boost system error is: " << error_code.message() << std::endl;
+    }
+
+    LOG(WARNING) << "CALLED TRYING TO GET RID OF " << unix_path_;
+
+    if (::unlink(unix_path_.c_str()) != 0)
+    {
+        LOG(WARNING) << "Failed to remove unix socket " << unix_path_
+                     << " for " << TYPENAME(ReceiveProtoT)
+                     << ". errno: " << errno << std::endl;
     }
 }
