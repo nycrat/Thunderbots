@@ -47,6 +47,18 @@ class PrimitiveExecutor
     std::unique_ptr<TbotsProto::DirectControlPrimitive> stepPrimitive(
         TbotsProto::PrimitiveExecutorStatus& status, const Duration& delta_time);
 
+    // When true, the robot is constrained to only translate along its local x-axis
+    // (forwards/backwards) and rotate -- it never strafes sideways (local y). While
+    // moving, the robot faces its direction of travel along the planned path; once it is
+    // within FORWARD_ONLY_FINAL_ROTATION_DISTANCE_M of the destination it rotates to the
+    // primitive's requested final orientation. This models the robot as a non-holonomic
+    // (unicycle) vehicle, which is useful when sideways motion is unreliable.
+    //
+    // The 2D position path itself is still planned holonomically by the AI; this flag
+    // only changes how that path is executed on the robot. Flip to false to restore the
+    // default holonomic (free-strafing) behavior.
+    static constexpr bool ENABLE_FORWARD_ONLY_MOTION = true;
+
    private:
     /*
      * Compute the next target linear _local_ velocity the robot should have.
@@ -63,6 +75,21 @@ class PrimitiveExecutor
      * @returns AngularVelocity The target angular velocity
      */
     AngularVelocity stepTargetAngularVelocity(const Duration& delta_time);
+
+    /*
+     * Compute the target angular velocity used in forward-only motion mode.
+     *
+     * While the robot is travelling, it rotates to face its direction of travel along the
+     * planned path (so it only ever needs to drive forwards/backwards). Once it is near
+     * the destination, it rotates to the primitive's requested final orientation instead.
+     * The returned angular velocity follows a deceleration-limited velocity profile so
+     * the robot slows down as it approaches the target orientation. The value is
+     * unclamped; stepTargetAngularVelocity applies the shared max-speed/max-acceleration
+     * limits.
+     *
+     * @returns AngularVelocity The (unclamped) target angular velocity
+     */
+    AngularVelocity stepForwardOnlyTargetAngularVelocity();
 
     /**
      * Sends the position, local velocity, and local acceleration to PlotJuggler.
@@ -102,6 +129,22 @@ class PrimitiveExecutor
     // (tick-to-tick) acceleration
     Vector prev_target_global_velocity_;
     AngularVelocity prev_target_angular_velocity_;
+
+    // Forward-only mode: whether the robot is currently driving in reverse (facing the
+    // opposite way to its travel direction). Persisted across steps to add hysteresis to
+    // the forwards-vs-backwards decision so it doesn't chatter near perpendicular.
+    bool forward_only_reversing_ = false;
+
+    // Forward-only mode: once the robot is within this distance of its destination, it
+    // stops slaving its heading to the travel direction and instead rotates to the
+    // requested final orientation. [m]
+    static constexpr double FORWARD_ONLY_FINAL_ROTATION_DISTANCE_M = 0.1;
+
+    // Forward-only mode: the robot may drive in reverse when that needs a smaller turn.
+    // To avoid chattering between facing forwards and backwards when the travel direction
+    // is roughly perpendicular to the robot, only switch driving direction once the
+    // alternative saves at least this much rotation. [rad]
+    static constexpr double FORWARD_ONLY_REVERSE_HYSTERESIS_RAD = 0.35;  // ~20 deg
 
     // Estimated delay between a vision frame to AI processing to robot executing
     static constexpr double VISION_TO_ROBOT_DELAY_S = 0.03;
