@@ -141,13 +141,20 @@ AngularVelocity PrimitiveExecutor::stepForwardOnlyTargetAngularVelocity()
 
     if (distance_to_destination > FORWARD_ONLY_FINAL_ROTATION_DISTANCE_M)
     {
-        // While travelling, face the direction of motion along the planned path.
-        Vector travel_direction = trajectory_path_->getVelocity(elapsed_s);
+        // Pure-pursuit style heading: aim at a look-ahead point further along the planned
+        // path, and steer towards it. The vector from the robot's actual position to that
+        // point both follows the path's curvature and steers back onto the path when the
+        // robot has drifted off it (cross-track error) -- which the robot cannot fix by
+        // strafing. Anchoring to a point on the path (rather than the instantaneous
+        // desired velocity) and looking ahead provides damping, so the robot converges
+        // onto the path smoothly instead of weaving across it.
+        const Point lookahead_point =
+            trajectory_path_->getPosition(elapsed_s + FORWARD_ONLY_LOOKAHEAD_TIME_S);
+        Vector travel_direction = lookahead_point - state_.position();
         if (travel_direction.length() < 1e-3)
         {
-            // The planned path velocity is ~0 (e.g. just starting from rest), so its
-            // direction is undefined. Fall back to the straight-line direction towards
-            // the destination.
+            // The look-ahead point coincides with the robot (e.g. at the very start from
+            // rest). Fall back to the straight-line direction towards the destination.
             travel_direction = trajectory_path_->getDestination() - state_.position();
         }
 
