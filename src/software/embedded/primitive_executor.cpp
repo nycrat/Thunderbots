@@ -177,17 +177,25 @@ AngularVelocity PrimitiveExecutor::stepForwardOnlyTargetAngularVelocity()
         target_orientation = angular_trajectory_->getDestination();
     }
 
-    // Command an angular velocity that respects the max angular deceleration so the robot
-    // slows down as it approaches the target orientation (mirroring the deceleration
-    // phase of a bang-bang profile), avoiding overshoot without precomputing a
-    // trajectory:
-    //   |w| = sqrt(2 * max_decel * |error|), capped at the max angular speed.
-    const double error_rad = (target_orientation - orientation).clamp().toRadians();
-    const double max_decel = robot_constants_.robot_max_ang_acceleration_rad_per_s_2;
-    const double max_speed = robot_constants_.robot_max_ang_speed_rad_per_s;
-    const double speed =
-        std::min(max_speed, std::sqrt(2.0 * max_decel * std::abs(error_rad)));
-    return AngularVelocity::fromRadians(std::copysign(speed, error_rad));
+    const Angle error = (target_orientation - orientation).clamp();
+
+    // Deadband so the robot fully settles (and doesn't jitter on sensor noise) once it is
+    // close enough to the target orientation.
+    if (error.abs().toRadians() < FORWARD_ONLY_HEADING_DEADBAND_RAD)
+    {
+        return AngularVelocity::zero();
+    }
+
+    // Saturated proportional controller toward the target orientation. The returned value
+    // is clamped to the max angular speed (and acceleration) by
+    // stepTargetAngularVelocity, so this saturates to a max-speed turn when far away and
+    // decays proportionally as the error shrinks. This gives a first-order, well-damped
+    // response that settles on the target. We deliberately avoid a time-optimal
+    // deceleration profile (|w| = sqrt(2 * decel * error)): that sits on the edge of
+    // stability and tends to overshoot and oscillate around the target once real-world
+    // latency and discretization are involved, since it keeps commanding a large angular
+    // speed even very close to the target.
+    return AngularVelocity::fromRadians(FORWARD_ONLY_HEADING_KP * error.toRadians());
 }
 
 
