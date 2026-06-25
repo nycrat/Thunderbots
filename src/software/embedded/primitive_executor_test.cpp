@@ -155,6 +155,54 @@ TEST(PrimitiveExecutorForwardOnlyTest, reaches_destination_and_final_orientation
         << "Robot ended facing " << orientation << " instead of " << final_angle;
 }
 
+// The robot must steer to correct cross-track error: if it is displaced sideways from
+// the planned path (which it cannot fix by strafing), it should rotate to head back
+// towards the path and converge onto the destination, rather than driving parallel to the
+// path forever. (Targeting only the raw path tangent would leave the offset uncorrected.)
+TEST(PrimitiveExecutorForwardOnlyTest, corrects_cross_track_error)
+{
+    if (!PrimitiveExecutor::ENABLE_FORWARD_ONLY_MOTION)
+    {
+        GTEST_SKIP() << "Forward-only motion is disabled";
+    }
+
+    const auto robot_constants = robot_constants::createRobotConstants();
+    PrimitiveExecutor executor(robot_constants);
+
+    // The planned path runs straight along +x from the origin, but the robot actually
+    // starts 0.5m to the side of it (and facing along +x). It can only get back onto the
+    // path by rotating to steer towards it.
+    const Point path_start(0, 0);
+    const Point destination(4, 0);
+    Point position               = Point(0, 0.5);
+    Angle orientation            = Angle::zero();
+    Vector global_velocity       = Vector(0, 0);
+    AngularVelocity ang_velocity = AngularVelocity::zero();
+
+    executor.updatePrimitive(
+        createMovePrimitive(path_start, destination, orientation, Angle::zero()));
+
+    const Duration delta_time = Duration::fromSeconds(0.005);
+    for (int i = 0; i < 1500; ++i)
+    {
+        executor.updateState(
+            RobotState(position, global_velocity, orientation, ang_velocity));
+
+        TbotsProto::PrimitiveExecutorStatus status;
+        const auto output           = executor.stepPrimitive(status, delta_time);
+        const Vector local_velocity = getCommandedLocalVelocity(*output);
+        ang_velocity                = getCommandedAngularVelocity(*output);
+
+        global_velocity = localToGlobalVelocity(local_velocity, orientation);
+        position        = position + global_velocity * delta_time.toSeconds();
+        orientation     = orientation + ang_velocity * delta_time.toSeconds();
+    }
+
+    // The robot converged onto the destination despite starting off the path.
+    EXPECT_LT((position - destination).length(), 0.15)
+        << "Robot ended at " << position << " instead of converging onto " << destination;
+}
+
 // Regression test for orientation oscillation. With realistic command/sensing latency,
 // the heading controller must still settle on the target orientation rather than
 // overshooting it and oscillating forever. (An undamped time-optimal deceleration profile
@@ -225,4 +273,68 @@ TEST(PrimitiveExecutorForwardOnlyTest, settles_without_oscillation_under_latency
 
     EXPECT_LT(max_tail_error_deg, 3.0)
         << "Orientation oscillates around its travel direction instead of settling";
+}
+
+// The robot must follow a curved path by rotating *while* it drives forward, not by
+// stopping to rotate. Starting with momentum that points away from the destination makes
+// the planned 2D path curve; the robot should track the curve to the destination without
+// strafing, and should be turning and driving forward at the same time.
+TEST(PrimitiveExecutorForwardOnlyTest, follows_curved_path_while_driving)
+{
+    if (!PrimitiveExecutor::ENABLE_FORWARD_ONLY_MOTION)
+    {
+        GTEST_SKIP() << "Forward-only motion is disabled";
+    }
+
+    const auto robot_constants = robot_constants::createRobotConstants();
+    PrimitiveExecutor executor(robot_constants);
+
+    // Robot starts at the origin driving forward (+x) with momentum, but the destination
+    // is up and to the left. The planned path (which inherits the robot's initial
+    // velocity) curves from +x towards the destination, so the robot must rotate left as
+    // it drives.
+    const Point destination(3, 3);
+    Point position         = Point(0, 0);
+    Angle orientation      = Angle::zero();
+    Vector global_velocity = Vector(2.0, 0);  // moving forward, aligned with heading
+    AngularVelocity ang_velocity = AngularVelocity::zero();
+
+    executor.updateState(
+        RobotState(position, global_velocity, orientation, ang_velocity));
+    executor.updatePrimitive(
+        createMovePrimitive(position, destination, orientation, Angle::zero()));
+
+    const Duration delta_time = Duration::fromSeconds(0.005);
+    double max_abs_strafe     = 0.0;
+    bool turned_while_driving = false;
+    for (int i = 0; i < 1500; ++i)
+    {
+        executor.updateState(
+            RobotState(position, global_velocity, orientation, ang_velocity));
+
+        TbotsProto::PrimitiveExecutorStatus status;
+        const auto output           = executor.stepPrimitive(status, delta_time);
+        const Vector local_velocity = getCommandedLocalVelocity(*output);
+        ang_velocity                = getCommandedAngularVelocity(*output);
+
+        max_abs_strafe = std::max(max_abs_strafe, std::abs(local_velocity.y()));
+
+        // "Rotate while moving forward": at some point the robot is meaningfully turning
+        // and driving forward simultaneously.
+        if (std::abs(ang_velocity.toRadians()) > 0.5 && local_velocity.x() > 0.5)
+        {
+            turned_while_driving = true;
+        }
+
+        global_velocity = localToGlobalVelocity(local_velocity, orientation);
+        position        = position + global_velocity * delta_time.toSeconds();
+        orientation     = orientation + ang_velocity * delta_time.toSeconds();
+    }
+
+    EXPECT_NEAR(max_abs_strafe, 0.0, 1e-6) << "Robot strafed while following the curve";
+    EXPECT_TRUE(turned_while_driving)
+        << "Robot never rotated and drove forward at the same time";
+    EXPECT_LT((position - destination).length(), 0.2)
+        << "Robot ended at " << position << " instead of following the curve to "
+        << destination;
 }
