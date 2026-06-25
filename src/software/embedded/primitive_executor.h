@@ -82,8 +82,8 @@ class PrimitiveExecutor
      * While the robot is travelling, it rotates to face its direction of travel along the
      * planned path (so it only ever needs to drive forwards/backwards). Once it is near
      * the destination, it rotates to the primitive's requested final orientation instead.
-     * The returned angular velocity follows a deceleration-limited velocity profile so
-     * the robot slows down as it approaches the target orientation. The value is
+     * The returned angular velocity comes from a saturated proportional controller toward
+     * that target orientation, which settles without overshoot/oscillation. The value is
      * unclamped; stepTargetAngularVelocity applies the shared max-speed/max-acceleration
      * limits.
      *
@@ -145,6 +145,18 @@ class PrimitiveExecutor
     // is roughly perpendicular to the robot, only switch driving direction once the
     // alternative saves at least this much rotation. [rad]
     static constexpr double FORWARD_ONLY_REVERSE_HYSTERESIS_RAD = 0.35;  // ~20 deg
+
+    // Forward-only mode: proportional gain [1/s] for the controller that rotates the
+    // robot toward its target orientation (its travel direction while moving, or the
+    // requested final orientation near the destination). Kept moderate so the response
+    // stays well-damped (settles without overshoot or oscillation) even with real-world
+    // latency. Increase for a snappier turn, decrease if it overshoots.
+    static constexpr double FORWARD_ONLY_HEADING_KP = 4.0;
+
+    // Forward-only mode: if the robot is within this angle of its target orientation,
+    // stop commanding angular velocity so it settles instead of jittering on sensor
+    // noise. [rad]
+    static constexpr double FORWARD_ONLY_HEADING_DEADBAND_RAD = 0.017;  // ~1 deg
 
     // Estimated delay between a vision frame to AI processing to robot executing
     static constexpr double VISION_TO_ROBOT_DELAY_S = 0.03;
