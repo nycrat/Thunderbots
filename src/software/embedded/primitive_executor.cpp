@@ -213,6 +213,10 @@ void PrimitiveExecutor::updatePrimitive(const TbotsProto::Primitive& primitive_m
         return;
     }
 
+    // Reset the forward-only reverse-driving state so each new move re-decides whether to
+    // drive forwards or backwards from scratch.
+    forward_only_reversing_ = false;
+
     const std::optional<TrajectoryPath> new_trajectory_path =
         createTrajectoryPathFromParams(current_primitive_.move().xy_traj_params(),
                                        state_.velocity(), robot_constants_);
@@ -442,48 +446,79 @@ Vector PrimitiveExecutor::stepTargetLinearVelocity(const Duration& delta_time)
         {"compensating_y_vel", target_v_global.y() - target_velocity.y()},
     });
 
-    return globalToLocalVelocity(target_v_global, state_.orientation());
+    Vector target_v_local = globalToLocalVelocity(target_v_global, state_.orientation());
+
+    if (ENABLE_FORWARD_ONLY_MOTION)
+    {
+        // Drop the sideways (strafe) component so the robot only drives along its
+        // heading. The remaining local-x component is exactly the projection of the
+        // desired global velocity onto the robot's facing direction: the robot moves at
+        // (close to) the desired speed once it has rotated to face its direction of
+        // travel, and barely translates while it is still turning to face it. The angular
+        // controller (stepForwardOnlyTargetAngularVelocity) is what turns the robot to
+        // face its travel direction.
+        target_v_local.setY(0.0);
+
+        // Keep the tracked "previous commanded velocity" consistent with what is actually
+        // commanded, so the acceleration limiting above stays accurate on the next step.
+        prev_target_global_velocity_ =
+            localToGlobalVelocity(target_v_local, state_.orientation());
+    }
+
+    return target_v_local;
 }
 
 AngularVelocity PrimitiveExecutor::stepTargetAngularVelocity(const Duration& delta_time)
 {
-    const double sample_time_sec =
-        nearestAngularTrajectorySampleTime(*angular_trajectory_, state_.orientation());
-
-    LOG(PLOTJUGGLER) << *createPlotJugglerValue({
-        {"target_orientation_rad",
-         angular_trajectory_->getPosition(sample_time_sec).toRadians()},
-        {"target_angular_vel_rad_per_s",
-         angular_trajectory_->getVelocity(sample_time_sec).toRadians()},
-        {"actual_orientation_rad", state_.orientation().toRadians()},
-        {"actual_angular_vel_rad_per_s", state_.angularVelocity().toRadians()},
-    });
-
-    auto target_w =
-        orientation_controller_.step(state_.orientation(), *angular_trajectory_,
-                                     Duration::fromSeconds(sample_time_sec), delta_time);
-
-    // Smoothly blend the angular velocity setpoint from the trajectory we just switched
-    // away from into the new one over a short window, so it doesn't jump on the switch.
-    if (angular_blend_remaining_.toSeconds() > 0.0 &&
-        prev_angular_trajectory_.has_value())
+    AngularVelocity target_w;
+    if (ENABLE_FORWARD_ONLY_MOTION)
     {
-        const double prev_sample_time_sec = nearestAngularTrajectorySampleTime(
-            *prev_angular_trajectory_, state_.orientation());
-        const AngularVelocity prev_traj_w =
-            prev_angular_trajectory_->getVelocity(prev_sample_time_sec);
+        // Slave the heading to the direction of travel (then to the final orientation
+        // near the destination) instead of following the independently-planned angular
+        // trajectory, so the robot only needs to move forwards/backwards.
+        target_w = stepForwardOnlyTargetAngularVelocity();
+    }
+    else
+    {
+        const double sample_time_sec =
+            nearestAngularTrajectorySampleTime(*angular_trajectory_, state_.orientation());
 
-        // alpha ramps from 0 (just switched: follow the old trajectory) to 1 (blend
-        // finished: fully follow the new trajectory).
-        const double alpha = std::clamp(
-            1.0 - angular_blend_remaining_.toSeconds() / TRAJECTORY_BLEND_DURATION_S, 0.0,
-            1.0);
-        target_w = prev_traj_w * (1.0 - alpha) + target_w * alpha;
+        LOG(PLOTJUGGLER) << *createPlotJugglerValue({
+            {"target_orientation_rad",
+             angular_trajectory_->getPosition(sample_time_sec).toRadians()},
+            {"target_angular_vel_rad_per_s",
+             angular_trajectory_->getVelocity(sample_time_sec).toRadians()},
+            {"actual_orientation_rad", state_.orientation().toRadians()},
+            {"actual_angular_vel_rad_per_s", state_.angularVelocity().toRadians()},
+        });
 
-        angular_blend_remaining_ -= delta_time;
-        if (angular_blend_remaining_.toSeconds() <= 0.0)
+        target_w =
+            orientation_controller_.step(state_.orientation(), *angular_trajectory_,
+                                         Duration::fromSeconds(sample_time_sec), delta_time);
+
+        // Smoothly blend the angular velocity setpoint from the trajectory we just
+        // switched away from into the new one over a short window, so it doesn't jump on
+        // the switch.
+        if (angular_blend_remaining_.toSeconds() > 0.0 &&
+            prev_angular_trajectory_.has_value())
         {
-            prev_angular_trajectory_.reset();
+            const double prev_sample_time_sec = nearestAngularTrajectorySampleTime(
+                *prev_angular_trajectory_, state_.orientation());
+            const AngularVelocity prev_traj_w =
+                prev_angular_trajectory_->getVelocity(prev_sample_time_sec);
+
+            // alpha ramps from 0 (just switched: follow the old trajectory) to 1 (blend
+            // finished: fully follow the new trajectory).
+            const double alpha = std::clamp(
+                1.0 - angular_blend_remaining_.toSeconds() / TRAJECTORY_BLEND_DURATION_S,
+                0.0, 1.0);
+            target_w = prev_traj_w * (1.0 - alpha) + target_w * alpha;
+
+            angular_blend_remaining_ -= delta_time;
+            if (angular_blend_remaining_.toSeconds() <= 0.0)
+            {
+                prev_angular_trajectory_.reset();
+            }
         }
     }
 
@@ -506,6 +541,86 @@ AngularVelocity PrimitiveExecutor::stepTargetAngularVelocity(const Duration& del
                                     AngularVelocity::fromRadians(angular_velocity_delta);
     prev_target_angular_velocity_ = target_w;
     return target_w;
+}
+
+AngularVelocity PrimitiveExecutor::stepForwardOnlyTargetAngularVelocity()
+{
+    const Angle orientation = state_.orientation();
+
+    Angle target_orientation;
+    const double distance_to_destination =
+        distance(state_.position(), trajectory_path_->getDestination());
+
+    if (distance_to_destination > FORWARD_ONLY_FINAL_ROTATION_DISTANCE_M)
+    {
+        // Pure-pursuit style heading: aim at a look-ahead point further along the planned
+        // path, and steer towards it. The vector from the robot's actual position to that
+        // point both follows the path's curvature and steers back onto the path when the
+        // robot has drifted off it (cross-track error) -- which the robot cannot fix by
+        // strafing. Anchoring to a point on the path (rather than the instantaneous
+        // desired velocity) and looking ahead provides damping, so the robot converges
+        // onto the path smoothly instead of weaving across it.
+        //
+        // The look-ahead is anchored to the point on the path nearest the robot (the same
+        // geometry the linear controller follows by, rather than a wall clock) and sampled
+        // a fixed time further along.
+        const double nearest_time_sec =
+            findNearestTimeOnTrajectory(*trajectory_path_, state_.position());
+        const Point lookahead_point = trajectory_path_->getPosition(
+            nearest_time_sec + FORWARD_ONLY_LOOKAHEAD_TIME_S);
+        Vector travel_direction = lookahead_point - state_.position();
+        if (travel_direction.length() < 1e-3)
+        {
+            // The look-ahead point coincides with the robot (e.g. at the very start from
+            // rest). Fall back to the straight-line direction towards the destination.
+            travel_direction = trajectory_path_->getDestination() - state_.position();
+        }
+
+        const Angle forward_heading = travel_direction.orientation();
+        const Angle reverse_heading = forward_heading + Angle::half();
+
+        // Pick driving forwards or backwards, whichever needs a smaller turn, with
+        // hysteresis so the decision doesn't chatter when the travel direction is roughly
+        // perpendicular to the robot.
+        const Angle forward_turn = orientation.minDiff(forward_heading);
+        const Angle reverse_turn = orientation.minDiff(reverse_heading);
+        const Angle hysteresis   = Angle::fromRadians(FORWARD_ONLY_REVERSE_HYSTERESIS_RAD);
+        if (forward_only_reversing_)
+        {
+            forward_only_reversing_ = !(forward_turn + hysteresis < reverse_turn);
+        }
+        else
+        {
+            forward_only_reversing_ = (reverse_turn + hysteresis < forward_turn);
+        }
+        target_orientation = forward_only_reversing_ ? reverse_heading : forward_heading;
+    }
+    else
+    {
+        // Close to the destination: rotate to the requested final orientation. The
+        // angular trajectory's destination is the final_angle requested by the primitive.
+        target_orientation = angular_trajectory_->getDestination();
+    }
+
+    const Angle error = (target_orientation - orientation).clamp();
+
+    // Deadband so the robot fully settles (and doesn't jitter on sensor noise) once it is
+    // close enough to the target orientation.
+    if (error.abs().toRadians() < FORWARD_ONLY_HEADING_DEADBAND_RAD)
+    {
+        return AngularVelocity::zero();
+    }
+
+    // Saturated proportional controller toward the target orientation. The returned value
+    // is clamped to the max angular speed (and acceleration) by stepTargetAngularVelocity,
+    // so this saturates to a max-speed turn when far away and decays proportionally as the
+    // error shrinks. This gives a first-order, well-damped response that settles on the
+    // target. We deliberately avoid a time-optimal deceleration profile
+    // (|w| = sqrt(2 * decel * error)): that sits on the edge of stability and tends to
+    // overshoot and oscillate around the target once real-world latency and discretization
+    // are involved, since it keeps commanding a large angular speed even very close to the
+    // target.
+    return AngularVelocity::fromRadians(FORWARD_ONLY_HEADING_KP * error.toRadians());
 }
 
 
