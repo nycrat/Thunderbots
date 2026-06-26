@@ -611,16 +611,24 @@ AngularVelocity PrimitiveExecutor::stepForwardOnlyTargetAngularVelocity()
         return AngularVelocity::zero();
     }
 
-    // Saturated proportional controller toward the target orientation. The returned value
-    // is clamped to the max angular speed (and acceleration) by stepTargetAngularVelocity,
-    // so this saturates to a max-speed turn when far away and decays proportionally as the
-    // error shrinks. This gives a first-order, well-damped response that settles on the
-    // target. We deliberately avoid a time-optimal deceleration profile
-    // (|w| = sqrt(2 * decel * error)): that sits on the edge of stability and tends to
-    // overshoot and oscillate around the target once real-world latency and discretization
-    // are involved, since it keeps commanding a large angular speed even very close to the
-    // target.
-    return AngularVelocity::fromRadians(FORWARD_ONLY_HEADING_KP * error.toRadians());
+    // Proportional controller toward the target orientation, with the commanded angular
+    // speed capped to what still allows braking to a stop within the remaining angle
+    // (assuming a deceleration gentler than the robot's real capability, for margin
+    // against latency and angular-velocity-estimate lag). Without the cap the controller
+    // keeps a large angular speed until it is almost at the target and cannot stop in
+    // time, so it overshoots and oscillates. Near the target the proportional term is
+    // smaller than the cap and dominates, giving a smooth first-order settle; the cap only
+    // bites during the high-speed part of a large turn. The returned value is further
+    // clamped to the max angular speed/acceleration by stepTargetAngularVelocity.
+    //
+    // The cap (rather than a pure time-optimal sqrt profile) is what keeps this stable:
+    // the proportional term, not the sqrt curve, governs the final approach, so the robot
+    // doesn't keep commanding a large angular speed right up against the target.
+    const double error_rad      = error.toRadians();
+    const double proportional_w = FORWARD_ONLY_HEADING_KP * error_rad;
+    const double speed_cap      = std::sqrt(
+        2.0 * FORWARD_ONLY_HEADING_DECELERATION_RAD_PER_S_2 * std::abs(error_rad));
+    return AngularVelocity::fromRadians(std::clamp(proportional_w, -speed_cap, speed_cap));
 }
 
 

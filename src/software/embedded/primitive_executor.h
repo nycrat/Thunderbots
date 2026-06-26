@@ -256,6 +256,16 @@ class PrimitiveExecutor
     // lower this gain.
     static constexpr double FORWARD_ONLY_HEADING_KP = 8.0;
 
+    // Forward-only mode: deceleration assumed when capping the heading controller's
+    // angular speed. The commanded speed is limited to sqrt(2 * this * |heading_error|) -
+    // the fastest the robot could rotate and still brake to a stop within the remaining
+    // angle - so it doesn't rotate into its target orientation too fast to stop, overshoot
+    // and oscillate. Set below the robot's true angular deceleration capability
+    // (robot_max_ang_acceleration_rad_per_s_2) so there's margin for sensing/actuation
+    // lag: lower values make the robot start slowing its rotation earlier (gentler, less
+    // overshoot), higher values keep it turning fast for longer. [rad/s^2]
+    static constexpr double FORWARD_ONLY_HEADING_DECELERATION_RAD_PER_S_2 = 15.0;
+
     // Forward-only mode: if the robot is within this angle of its target orientation,
     // stop commanding angular velocity so it settles instead of jittering on sensor
     // noise. [rad]
