@@ -1,6 +1,7 @@
 #include "software/embedded/primitive_executor.h"
 
 #include <algorithm>
+#include <cmath>
 #include <limits>
 #include <vector>
 
@@ -126,8 +127,9 @@ double findNearestTimeOnTrajectory(const TrajectoryPath& trajectory,
     {
         for (int i = 0; i <= num_samples; ++i)
         {
-            const double t = start_t + (end_t - start_t) * (static_cast<double>(i) /
-                                                            static_cast<double>(num_samples));
+            const double t =
+                start_t + (end_t - start_t) *
+                              (static_cast<double>(i) / static_cast<double>(num_samples));
             const double dist_sq = (trajectory.getPosition(t) - position).lengthSquared();
             if (dist_sq < best_dist_sq)
             {
@@ -143,8 +145,9 @@ double findNearestTimeOnTrajectory(const TrajectoryPath& trajectory,
 
     // Refine within one coarse step on either side of the best coarse sample.
     const double coarse_step = total_time / NUM_NEAREST_POINT_COARSE_SAMPLES;
-    search(std::max(0.0, best_t - coarse_step), std::min(total_time, best_t + coarse_step),
-           NUM_NEAREST_POINT_FINE_SAMPLES, best_t, best_dist_sq);
+    search(std::max(0.0, best_t - coarse_step),
+           std::min(total_time, best_t + coarse_step), NUM_NEAREST_POINT_FINE_SAMPLES,
+           best_t, best_dist_sq);
     return best_t;
 }
 
@@ -170,8 +173,9 @@ double findNearestTimeOnAngularTrajectory(const BangBangTrajectory1DAngular& tra
     {
         for (int i = 0; i <= num_samples; ++i)
         {
-            const double t = start_t + (end_t - start_t) * (static_cast<double>(i) /
-                                                            static_cast<double>(num_samples));
+            const double t =
+                start_t + (end_t - start_t) *
+                              (static_cast<double>(i) / static_cast<double>(num_samples));
             const double diff_rad =
                 trajectory.getPosition(t).minDiff(orientation).toRadians();
             if (diff_rad < best_diff_rad)
@@ -187,8 +191,9 @@ double findNearestTimeOnAngularTrajectory(const BangBangTrajectory1DAngular& tra
     search(0.0, total_time, NUM_NEAREST_POINT_COARSE_SAMPLES, best_t, best_diff_rad);
 
     const double coarse_step = total_time / NUM_NEAREST_POINT_COARSE_SAMPLES;
-    search(std::max(0.0, best_t - coarse_step), std::min(total_time, best_t + coarse_step),
-           NUM_NEAREST_POINT_FINE_SAMPLES, best_t, best_diff_rad);
+    search(std::max(0.0, best_t - coarse_step),
+           std::min(total_time, best_t + coarse_step), NUM_NEAREST_POINT_FINE_SAMPLES,
+           best_t, best_diff_rad);
     return best_t;
 }
 }  // namespace
@@ -322,9 +327,9 @@ double PrimitiveExecutor::nearestTrajectorySampleTime(const TrajectoryPath& traj
     // Sample a small look-ahead past the nearest point so the target always leads the
     // robot and it keeps making forward progress along the path. Clamped to the end of
     // the trajectory so we don't sample past the destination.
-    return std::min(findNearestTimeOnTrajectory(trajectory, position) +
-                        TRAJECTORY_LOOKAHEAD_TIME_S,
-                    trajectory.getTotalTime());
+    return std::min(
+        findNearestTimeOnTrajectory(trajectory, position) + TRAJECTORY_LOOKAHEAD_TIME_S,
+        trajectory.getTotalTime());
 }
 
 double PrimitiveExecutor::nearestAngularTrajectorySampleTime(
@@ -343,9 +348,9 @@ Vector PrimitiveExecutor::stepTargetLinearVelocity(const Duration& delta_time)
     const Point target_position  = trajectory_path_->getPosition(sample_time_sec);
     const Vector target_velocity = trajectory_path_->getVelocity(sample_time_sec);
 
-    Vector target_v_global = position_controller_.step(
-        state_.position(), *trajectory_path_, Duration::fromSeconds(sample_time_sec),
-        delta_time);
+    Vector target_v_global =
+        position_controller_.step(state_.position(), *trajectory_path_,
+                                  Duration::fromSeconds(sample_time_sec), delta_time);
 
     // Smoothly blend the velocity setpoint from the trajectory we just switched away
     // from into the new one over a short window, so it doesn't jump on the switch. The
@@ -371,10 +376,25 @@ Vector PrimitiveExecutor::stepTargetLinearVelocity(const Duration& delta_time)
         }
     }
 
-    // make sure robot doesn't go faster than max speed (speed is frame-invariant)
-    target_v_global = target_v_global.normalize(
-        std::min(target_v_global.length(),
-                 static_cast<double>(robot_constants_.robot_max_speed_m_per_s)));
+    // Reduce the commanded speed as the robot nears the destination so it can't arrive
+    // carrying more speed than it can shed, which is what causes it to overshoot and then
+    // oscillate. The speed is capped to the fastest the robot could go and still brake to
+    // a stop within the remaining distance, assuming a deceleration deliberately gentler
+    // than its true capability so there's margin for sensing/actuation lag. Far from the
+    // destination this cap exceeds the trajectory speed and has no effect; it only bites
+    // during the final approach.
+    const double distance_to_destination =
+        distance(state_.position(), trajectory_path_->getDestination());
+    const double approach_speed_cap = std::sqrt(2.0 * APPROACH_DECELERATION_M_PER_S_2 *
+                                                std::pow(distance_to_destination, 1.5));
+
+    // make sure robot doesn't go faster than max speed (speed is frame-invariant), nor
+    // faster than the destination-approach cap above
+    const double max_speed =
+        std::min(static_cast<double>(robot_constants_.robot_max_speed_m_per_s),
+                 approach_speed_cap);
+    target_v_global =
+        target_v_global.normalize(std::min(target_v_global.length(), max_speed));
 
     // The trajectory's own velocity is acceleration-bounded, but the PID correction and
     // per-tick trajectory regeneration are added on top, so the emitted command must be
@@ -439,13 +459,14 @@ AngularVelocity PrimitiveExecutor::stepTargetAngularVelocity(const Duration& del
         {"actual_angular_vel_rad_per_s", state_.angularVelocity().toRadians()},
     });
 
-    auto target_w = orientation_controller_.step(
-        state_.orientation(), *angular_trajectory_, Duration::fromSeconds(sample_time_sec),
-        delta_time);
+    auto target_w =
+        orientation_controller_.step(state_.orientation(), *angular_trajectory_,
+                                     Duration::fromSeconds(sample_time_sec), delta_time);
 
     // Smoothly blend the angular velocity setpoint from the trajectory we just switched
     // away from into the new one over a short window, so it doesn't jump on the switch.
-    if (angular_blend_remaining_.toSeconds() > 0.0 && prev_angular_trajectory_.has_value())
+    if (angular_blend_remaining_.toSeconds() > 0.0 &&
+        prev_angular_trajectory_.has_value())
     {
         const double prev_sample_time_sec = nearestAngularTrajectorySampleTime(
             *prev_angular_trajectory_, state_.orientation());
@@ -481,8 +502,8 @@ AngularVelocity PrimitiveExecutor::stepTargetAngularVelocity(const Duration& del
     const double angular_velocity_delta =
         std::clamp((target_w - prev_target_angular_velocity_).toRadians(),
                    -max_angular_velocity_delta, max_angular_velocity_delta);
-    target_w = prev_target_angular_velocity_ +
-               AngularVelocity::fromRadians(angular_velocity_delta);
+    target_w                      = prev_target_angular_velocity_ +
+                                    AngularVelocity::fromRadians(angular_velocity_delta);
     prev_target_angular_velocity_ = target_w;
     return target_w;
 }

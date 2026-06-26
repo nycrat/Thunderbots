@@ -189,4 +189,12 @@ class PrimitiveExecutor
     // intentionally - it only smooths the switch, it shouldn't noticeably delay
     // tracking the new trajectory.
     static constexpr double TRAJECTORY_BLEND_DURATION_S = 0.04;
+
+    // Deceleration assumed when capping the robot's speed during its final approach to the
+    // destination. The commanded speed is limited to sqrt(2 * this * distance_to_dest) -
+    // the fastest the robot could travel and still brake to a stop within the remaining
+    // distance. Set below the robot's true deceleration capability so there's margin for
+    // sensing and actuation lag: lower values make the robot start slowing earlier (gentler
+    // approach, less overshoot), higher values keep it fast for longer.
+    static constexpr double APPROACH_DECELERATION_M_PER_S_2 = 2.0;
 };
