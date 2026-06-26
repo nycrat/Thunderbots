@@ -390,7 +390,7 @@ Vector PrimitiveExecutor::stepTargetLinearVelocity(const Duration& delta_time)
     const double distance_to_destination =
         distance(state_.position(), trajectory_path_->getDestination());
     const double approach_speed_cap = std::sqrt(2.0 * APPROACH_DECELERATION_M_PER_S_2 *
-                                                std::pow(distance_to_destination, 1.5));
+                                                std::pow(distance_to_destination, 1.75));
 
     // make sure robot doesn't go faster than max speed (speed is frame-invariant), nor
     // faster than the destination-approach cap above
