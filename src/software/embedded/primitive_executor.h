@@ -161,7 +161,7 @@ class PrimitiveExecutor
     // To avoid chattering between facing forwards and backwards when the travel direction
     // is roughly perpendicular to the robot, only switch driving direction once the
     // alternative saves at least this much rotation. [rad]
-    static constexpr double FORWARD_ONLY_REVERSE_HYSTERESIS_RAD = 0.35;  // ~20 deg
+    static constexpr double FORWARD_ONLY_REVERSE_HYSTERESIS_RAD = 100.0;  // disabled
 
     // Forward-only mode: proportional gain [1/s] for the controller that rotates the
     // robot toward its target orientation (its pure-pursuit heading while moving, or the
@@ -170,7 +170,7 @@ class PrimitiveExecutor
     // damping, so this is the knob for responsiveness: raise it for snappier turns, but
     // if the robot weaves across the path, increase FORWARD_ONLY_LOOKAHEAD_TIME_S or
     // lower this gain.
-    static constexpr double FORWARD_ONLY_HEADING_KP = 8.0;
+    static constexpr double FORWARD_ONLY_HEADING_KP = 10.0;
 
     // Forward-only mode: if the robot is within this angle of its target orientation,
     // stop commanding angular velocity so it settles instead of jittering on sensor
