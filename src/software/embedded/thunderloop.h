@@ -224,7 +224,7 @@ class Thunderloop
     struct timespec last_kicker_fired_;
 
     // 500 millisecond timeout on receiving primitives before we stop the robots
-    const double PACKET_TIMEOUT_NS = 500.0 * NANOSECONDS_PER_MILLISECOND;
+    const double PACKET_TIMEOUT_NS = 1000.0 * NANOSECONDS_PER_MILLISECOND;
 
     // Timeout after a failed ping request
     const int PING_RETRY_DELAY_S = 1;
