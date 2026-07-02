@@ -14,8 +14,14 @@
 #include "software/physics/velocity_conversion_util.h"
 
 PrimitiveExecutor::PrimitiveExecutor(
-    const robot_constants::RobotConstants& robot_constants)
-    : state_(), current_primitive_(), robot_constants_(robot_constants)
+    const robot_constants::RobotConstants& robot_constants,
+    const PositionControllerConfig& position_controller_config,
+    const OrientationControllerConfig& orientation_controller_config)
+    : state_(),
+      current_primitive_(),
+      robot_constants_(robot_constants),
+      position_controller_(position_controller_config),
+      orientation_controller_(orientation_controller_config)
 {
 }
 
