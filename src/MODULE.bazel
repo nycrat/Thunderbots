@@ -219,8 +219,8 @@ git_repository(
     name = "mdv6_firmware",
     build_file = "@//extlibs:mdv6_firmware.bzl",
     # Pinning to the exact commit guarantees Bazel will rebuild when this commit SHA is updated
-    commit = "4341d96e9be1cb01f10d52f7e80326b84dbfb4ea",  # latest commit on master branch
-    remote = "https://github.com/UBC-Thunderbots/MDv6_Firmware.git",
+    commit = "560eb5d588944560ecd62ffcbf4a255ea2f985f5",  # TODO revert
+    remote = "https://github.com/nycrat/MDv6_Firmware.git",
 )
 
 http_archive(
