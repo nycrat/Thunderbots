@@ -3,7 +3,7 @@ from collections.abc import Callable
 from PyQt6.QtCore import QRect
 from PyQt6.QtGui import QColor
 from PyQt6.QtWidgets import QPushButton, QSlider, QLabel
-from software.py_constants import *
+from software.py_constants import MILLISECONDS_PER_SECOND
 from typing import override
 
 
