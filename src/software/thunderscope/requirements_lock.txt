@@ -12,7 +12,7 @@ darkdetect==0.7.1 \
     --hash=sha256:3efe69f8ecd5f1b7f4fbb0d1d93f656b0e493c45cc49222380ffe2a529cbc866 \
     --hash=sha256:47be3cf5134432ddb616bbffc927237718407914993c82809983e7ccebf49013
     # via pyqtdarktheme-fork
-evdev==1.7.0 ; sys_platform == "linux" \
+evdev==1.7.0 \
     --hash=sha256:95bd2a1e0c6ce2cd7a2ecc6e6cd9736ff794b3ad5cb54d81d8cbc2e414d0b870
     # via -r software/thunderscope/requirements.in
 netifaces==0.11.0 \
@@ -102,18 +102,14 @@ protobuf==6.31.1 \
     --hash=sha256:a40fc12b84c154884d7d4c4ebd675d5b3b5283e155f324049ae396b95ddebc39 \
     --hash=sha256:d8cac4c982f0b957a4dc73a80e2ea24fab08e679c0de9deb835f4a12d69aca9a
     # via -r software/thunderscope/requirements.in
+pyopengl==3.1.6 \
+    --hash=sha256:57c597d989178e1413002df6b923619f6d29807501dece1c60cc6f12c0c8e8a7 \
+    --hash=sha256:8ea6c8773927eda7405bffc6f5bb93be81569a7b05c8cac50cd94e969dce5e27 \
+    --hash=sha256:a7139bc3e15d656feae1f7e3ef68c799941ed43fadc78177a23db7e946c20738
+    # via -r software/thunderscope/requirements.in
 pyqt-toast-notification==1.3.2 \
     --hash=sha256:135736ec0f16bff41104dee3c60ac318e5d55ae3378bf26892c6d08c36088ae6 \
     --hash=sha256:82688101202737736d51ab6c74a573b32266ecb7c8b0002f913407bd369737d9
-    # via -r software/thunderscope/requirements.in
-pyqt6-qt6==6.8.1 \
-    --hash=sha256:006d786693d0511fbcf184a862edbd339c6ed1bb3bd9de363d73a19ed4b23dff \
-    --hash=sha256:08065d595f1e6fc2dde9f4450eeff89082f4bad26f600a8e9b9cc5966716bfcf \
-    --hash=sha256:1eb8460a1fdb38d0b2458c2974c01d471c1e59e4eb19ea63fc447aaba3ad530e \
-    --hash=sha256:20843cb86bd94942d1cd99e39bf1aeabb875b241a35a8ab273e4bbbfa63776db \
-    --hash=sha256:9f3790c4ce4dc576e48b8718d55fb8743057e6cbd53a6ca1dd253ffbac9b7287 \
-    --hash=sha256:a8bc2ed4ee5e7c6ff4dd1c7db0b27705d151fee5dc232bbd1bf17618f937f515 \
-    --hash=sha256:d6ca5d2b9d2ec0ee4a814b2175f641a5c4299cb80b45e0f5f8356632663f89b3
     # via -r software/thunderscope/requirements.in
 pyqtdarktheme-fork==2.3.2 \
     --hash=sha256:3ea94fed5df262d960378409357c63032639f749794d766f41a45ad8558b2523 \
